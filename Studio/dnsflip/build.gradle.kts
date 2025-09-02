@@ -62,11 +62,18 @@ dependencies {
     implementation("dev.rikka.shizuku:api:13.1.0")
     implementation("dev.rikka.shizuku:provider:13.1.0")
     
+    // Unit Testing
     testImplementation(libs.junit)
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    
+    // Instrumented Testing
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    
+    // Compose Testing
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }

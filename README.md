@@ -120,6 +120,32 @@ adb shell pm grant com.mjryan253.dnsflip android.permission.WRITE_SECURE_SETTING
    ./gradlew installDebug
    ```
 
+### Testing
+
+DNSFlip includes a comprehensive test suite covering unit tests, integration tests, and UI tests.
+
+**Run all tests:**
+```bash
+./gradlew test connectedAndroidTest
+```
+
+**Run unit tests only:**
+```bash
+./gradlew test
+```
+
+**Run instrumented tests:**
+```bash
+./gradlew connectedAndroidTest
+```
+
+**Run with coverage:**
+```bash
+./gradlew testDebugUnitTestCoverage
+```
+
+For detailed testing information, see [Testing Guide](docs/testing.md).
+
 ### Project Structure
 ```
 Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/
@@ -135,6 +161,18 @@ Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/
         ├── Color.kt           # OLED-optimized colors
         ├── Theme.kt           # Dark theme configuration
         └── Type.kt            # Typography
+
+Studio/dnsflip/src/test/java/com/mjryan253/dnsflip/
+├── DNSManagerTest.kt          # DNS functionality unit tests
+├── PreferencesManagerTest.kt  # Data persistence unit tests
+├── ShizukuManagerTest.kt      # Shizuku integration unit tests
+└── ui/theme/ThemeTest.kt      # Theme system unit tests
+
+Studio/dnsflip/src/androidTest/java/com/mjryan253/dnsflip/
+├── DNSManagerIntegrationTest.kt      # DNS integration tests
+├── PreferencesManagerIntegrationTest.kt # Preferences integration tests
+├── MainActivityUITest.kt             # UI component tests
+└── ExampleInstrumentedTest.kt        # Basic instrumented tests
 ```
 
 ### Dependencies
@@ -143,6 +181,13 @@ Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/
 - **Material Design 3** - Design system
 - **Shizuku API** - System permission access
 - **Kotlin Coroutines** - Asynchronous programming
+
+### Testing Dependencies
+- **JUnit 4** - Testing framework
+- **MockK** - Mocking library for Kotlin
+- **Compose Testing** - UI testing framework
+- **AndroidX Test** - Instrumented testing
+- **Coroutines Test** - Async testing support
 
 ## 🔒 Security & Privacy
 
