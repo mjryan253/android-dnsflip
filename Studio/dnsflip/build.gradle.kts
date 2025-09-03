@@ -58,8 +58,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     
-    // Shizuku API for system permission access - Local module
-    implementation(project(":api"))
+    // Shizuku API for system permission access - Official Maven dependency
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
         
     // Unit Testing
     testImplementation(libs.junit)

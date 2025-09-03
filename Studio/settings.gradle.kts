@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DNSFlip"
-include(":dnsflip", ":api")
+include(":dnsflip")
