@@ -59,9 +59,9 @@ dependencies {
     implementation(libs.androidx.material3)
     
     // Shizuku API for system permission access
-    implementation("dev.rikka.shizuku:api:13.1.4")
-    implementation("dev.rikka.shizuku:provider:13.1.4")
-    
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
+        
     // Unit Testing
     testImplementation(libs.junit)
     testImplementation("io.mockk:mockk:1.13.8")

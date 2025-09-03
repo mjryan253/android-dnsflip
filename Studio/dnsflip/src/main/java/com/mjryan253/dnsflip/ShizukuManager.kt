@@ -3,6 +3,8 @@ package com.mjryan253.dnsflip
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import dev.rikka.shizuku.api.Shizuku
+import dev.rikka.shizuku.api.Shizuku.OnRequestPermissionResultListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,17 +42,30 @@ class ShizukuManager(private val context: Context) {
     private val _lastError = MutableStateFlow<String?>(null)
     val lastError: StateFlow<String?> = _lastError.asStateFlow()
     
-    // TODO: Implement Shizuku permission result listener once dependencies are resolved
-    // private val requestPermissionResultListener = ...
+    // Shizuku permission result listener for handling permission grant/deny results
+    private val requestPermissionResultListener =
+        OnRequestPermissionResultListener { requestCode, grantResult ->
+            if (requestCode == 1) {
+                if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                    _shizukuState.value = ShizukuState.READY
+                    _hasPermission.value = true
+                    Log.i(TAG, "Shizuku permission granted via result listener")
+                } else {
+                    _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
+                    _hasPermission.value = false
+                    Log.w(TAG, "Shizuku permission denied via result listener")
+                }
+            }
+        }
     
     init {
-        // TODO: Add Shizuku permission result listener once dependencies are resolved
-        // try {
-        //     Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
-        //     Log.d(TAG, "Shizuku permission result listener added")
-        // } catch (e: Exception) {
-        //     Log.w(TAG, "Could not add Shizuku permission result listener: ${e.message}")
-        // }
+        // Register Shizuku permission result listener
+        try {
+            Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
+            Log.d(TAG, "Shizuku permission result listener added")
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not add Shizuku permission result listener: ${e.message}")
+        }
         
         // Check initial status
         checkShizukuStatus()
@@ -61,13 +76,13 @@ class ShizukuManager(private val context: Context) {
      * This should be called when the activity is destroyed
      */
     fun cleanup() {
-        // TODO: Remove Shizuku permission result listener once dependencies are resolved
-        // try {
-        //     Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
-        //     Log.d(TAG, "Shizuku permission result listener removed")
-        // } catch (e: Exception) {
-        //     Log.w(TAG, "Could not remove Shizuku permission result listener: ${e.message}")
-        // }
+        // Remove Shizuku permission result listener
+        try {
+            Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
+            Log.d(TAG, "Shizuku permission result listener removed")
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not remove Shizuku permission result listener: ${e.message}")
+        }
     }
     
     /**
@@ -75,8 +90,12 @@ class ShizukuManager(private val context: Context) {
      * @return true if Shizuku is available, false otherwise
      */
     fun isShizukuAvailable(): Boolean {
-        // TODO: Implement using Shizuku.pingBinder() once dependencies are resolved
-        return false
+        return try {
+            Shizuku.pingBinder()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error checking Shizuku availability: ${e.message}")
+            false
+        }
     }
     
     /**
@@ -84,8 +103,12 @@ class ShizukuManager(private val context: Context) {
      * @return true if we can perform DNS operations, false otherwise
      */
     private fun checkShizukuPermission(): Boolean {
-        // TODO: Implement using Shizuku API once dependencies are resolved
-        return false
+        return try {
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+        } catch (e: Exception) {
+            Log.w(TAG, "Error checking Shizuku permission: ${e.message}")
+            false
+        }
     }
     
     /**
@@ -248,24 +271,27 @@ class ShizukuManager(private val context: Context) {
     fun checkShizukuStatus() {
         try {
             Log.d(TAG, "Checking Shizuku status via official API")
-            
-            // TODO: Implement using Shizuku.pingBinder() once dependencies are resolved
-            // Check if Shizuku is available
-            // if (!Shizuku.pingBinder()) {
-            //     Log.d(TAG, "Shizuku service not available")
-            //     _shizukuState.value = ShizukuState.NOT_RUNNING
-            //     _hasPermission.value = false
-            //     _lastError.value = "Shizuku service is not running"
-            //     return
-            // }
-            
-            Log.d(TAG, "Shizuku service not available - dependencies not resolved")
-            _shizukuState.value = ShizukuState.NOT_RUNNING
-            _hasPermission.value = false
-            _lastError.value = "Shizuku dependencies not resolved - please check Gradle configuration"
-            
+
+            if (!Shizuku.pingBinder()) {
+                Log.d(TAG, "Shizuku service not available")
+                _shizukuState.value = ShizukuState.NOT_RUNNING
+                _hasPermission.value = false
+                _lastError.value = "Shizuku service is not running"
+                return
+            }
+
+            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Shizuku permission is granted")
+                _shizukuState.value = ShizukuState.READY
+                _hasPermission.value = true
+            } else {
+                Log.d(TAG, "Shizuku permission is required")
+                _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
+                _hasPermission.value = false
+            }
+
             Log.d(TAG, "Shizuku status updated: ${_shizukuState.value}")
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "Error checking Shizuku status", e)
             _shizukuState.value = ShizukuState.ERROR
@@ -324,20 +350,16 @@ class ShizukuManager(private val context: Context) {
     fun requestPermission() {
         try {
             Log.i(TAG, "Requesting Shizuku permission via API")
-            
-            // TODO: Implement using Shizuku API once dependencies are resolved
-            // if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-            //     Shizuku.requestPermission(1)
-            // } else {
-            //     Log.i(TAG, "Already have Shizuku permission")
-            //     _shizukuState.value = ShizukuState.READY
-            //     _hasPermission.value = true
-            //     _lastError.value = null
-            //     }
-            
-            Log.w(TAG, "Shizuku permission request not implemented - dependencies not resolved")
-            _lastError.value = "Shizuku dependencies not resolved - please check Gradle configuration"
-            
+
+            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                Shizuku.requestPermission(1)
+            } else {
+                Log.i(TAG, "Already have Shizuku permission")
+                _shizukuState.value = ShizukuState.READY
+                _hasPermission.value = true
+                _lastError.value = null
+            }
+
         } catch (e: Exception) {
             Log.e(TAG, "Error requesting Shizuku permission", e)
             _lastError.value = "Failed to request permission: ${e.message}"
