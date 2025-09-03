@@ -129,26 +129,15 @@ fun OnboardingDialog(
                             
                             // Shizuku Status
                             when (shizukuState) {
-                                ShizukuState.NOT_INSTALLED -> {
+                                ShizukuState.NOT_RUNNING -> {
                                     Button(
-                                        onClick = { shizukuManager.openShizukuDownload() },
+                                        onClick = { /* TODO: Implement Shizuku service start once dependencies resolved */ },
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
                                     ) {
-                                        Icon(Icons.Default.Add, contentDescription = null)
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Install Shizuku")
-                                    }
-                                }
-                                ShizukuState.NOT_RUNNING -> {
-                                    Button(
-                                        onClick = { shizukuManager.openShizukuApp() },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = ButtonDefaults.buttonColors(containerColor = StatusWarning)
-                                    ) {
                                         Icon(Icons.Default.PlayArrow, contentDescription = null)
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Start Shizuku")
+                                        Text("Start Shizuku Service")
                                     }
                                 }
                                 ShizukuState.PERMISSION_REQUIRED -> {

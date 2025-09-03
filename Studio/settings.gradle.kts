@@ -19,6 +19,8 @@ dependencyResolutionManagement {
         maven { url = uri("https://api.xposed.info/") }
         maven { url = uri("https://jitpack.io") }
         maven { url = uri("https://maven.rikka.dev/releases") }
+        maven { url = uri("https://api.rikka.dev/releases") }
+        maven { url = uri("https://maven.rikka.dev/snapshots") }
     }
 }
 

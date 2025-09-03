@@ -264,22 +264,13 @@ fun MainScreen(
                     }
                     
                     when (shizukuState) {
-                        com.mjryan253.dnsflip.ShizukuState.NOT_INSTALLED -> {
-                            Button(
-                                onClick = { shizukuManager.openShizukuDownload() },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
-                            ) {
-                                Text("Install Shizuku")
-                            }
-                        }
                         com.mjryan253.dnsflip.ShizukuState.NOT_RUNNING -> {
                             Button(
-                                onClick = { shizukuManager.openShizukuApp() },
+                                onClick = { /* TODO: Implement Shizuku service start once dependencies resolved */ },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
                             ) {
-                                Text("Start Shizuku")
+                                Text("Start Shizuku Service")
                             }
                         }
                         com.mjryan253.dnsflip.ShizukuState.PERMISSION_REQUIRED -> {

@@ -1,10 +1,8 @@
 package com.mjryan253.dnsflip
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
+import android.content.pm.PackageManager
 import android.util.Log
-import android.widget.Toast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,20 +22,16 @@ import kotlinx.coroutines.flow.asStateFlow
  * - User-friendly status messages and recommended actions
  * 
  * @author DNSFlip Team
- * @version 2.0
+ * @version 2.2
  * @since Android 9 (API 28)
  */
 class ShizukuManager(private val context: Context) {
     
     companion object {
         private const val TAG = "ShizukuManager"
-        
-        // Shizuku package information
-        private const val SHIZUKU_PACKAGE = "moe.shizuku.manager"
-        private const val SHIZUKU_PRIVILEGED_PACKAGE = "moe.shizuku.privileged.api"
     }
     
-    private val _shizukuState = MutableStateFlow(ShizukuState.NOT_INSTALLED)
+    private val _shizukuState = MutableStateFlow(ShizukuState.NOT_RUNNING)
     val shizukuState: StateFlow<ShizukuState> = _shizukuState.asStateFlow()
     
     private val _hasPermission = MutableStateFlow(false)
@@ -46,101 +40,52 @@ class ShizukuManager(private val context: Context) {
     private val _lastError = MutableStateFlow<String?>(null)
     val lastError: StateFlow<String?> = _lastError.asStateFlow()
     
+    // TODO: Implement Shizuku permission result listener once dependencies are resolved
+    // private val requestPermissionResultListener = ...
+    
     init {
+        // TODO: Add Shizuku permission result listener once dependencies are resolved
+        // try {
+        //     Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
+        //     Log.d(TAG, "Shizuku permission result listener added")
+        // } catch (e: Exception) {
+        //     Log.w(TAG, "Could not add Shizuku permission result listener: ${e.message}")
+        // }
+        
         // Check initial status
         checkShizukuStatus()
     }
     
     /**
-     * Check if Shizuku is installed on the device
-     * @return true if Shizuku is installed, false otherwise
+     * Clean up resources when ShizukuManager is no longer needed
+     * This should be called when the activity is destroyed
      */
-    fun isShizukuInstalled(): Boolean {
-        return try {
-            // Check for the main Shizuku Manager app first
-            try {
-                context.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0)
-                Log.d(TAG, "Shizuku Manager app found")
-                return true
-            } catch (e: Exception) {
-                Log.d(TAG, "Shizuku Manager app not found: ${e.message}")
-            }
-            
-            // Fallback: check for the privileged API package
-            try {
-                context.packageManager.getPackageInfo(SHIZUKU_PRIVILEGED_PACKAGE, 0)
-                Log.d(TAG, "Shizuku privileged API package found")
-                return true
-            } catch (e: Exception) {
-                Log.d(TAG, "Shizuku privileged API package not found: ${e.message}")
-            }
-            
-            Log.d(TAG, "No Shizuku packages found")
-            false
-        } catch (e: Exception) {
-            Log.d(TAG, "Error checking Shizuku installation: ${e.message}")
-            false
-        }
+    fun cleanup() {
+        // TODO: Remove Shizuku permission result listener once dependencies are resolved
+        // try {
+        //     Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
+        //     Log.d(TAG, "Shizuku permission result listener removed")
+        // } catch (e: Exception) {
+        //     Log.w(TAG, "Could not remove Shizuku permission result listener: ${e.message}")
+        // }
     }
     
     /**
-     * Check if Shizuku service is running by attempting to access system settings
-     * @return true if service is accessible, false otherwise
+     * Check if Shizuku is available using the official API
+     * @return true if Shizuku is available, false otherwise
      */
-    private fun isShizukuServiceRunning(): Boolean {
-        return try {
-            // Try to access a system setting that requires Shizuku permission
-            // This is the most reliable way to check if Shizuku is actually working
-            try {
-                val testValue = android.provider.Settings.Global.getString(
-                    context.contentResolver, 
-                    "private_dns_mode"
-                )
-                Log.d(TAG, "Shizuku service check successful - can access system settings")
-                return true
-            } catch (e: SecurityException) {
-                Log.d(TAG, "Shizuku service check failed - SecurityException (permission not granted)")
-                // This is expected if permission isn't granted yet
-            }
-            
-            // Method 2: Check if the Shizuku package is available and enabled
-            val packageInfo = context.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0)
-            
-            // Check if the package is enabled and not stopped
-            if (packageInfo.applicationInfo?.enabled == true) {
-                Log.d(TAG, "Shizuku package is enabled and available")
-                true
-            } else {
-                Log.w(TAG, "Shizuku package is disabled or null")
-                false
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Error checking Shizuku service", e)
-            false
-        }
+    fun isShizukuAvailable(): Boolean {
+        // TODO: Implement using Shizuku.pingBinder() once dependencies are resolved
+        return false
     }
     
     /**
-     * Check if we have Shizuku permission by testing DNS operations
+     * Check if we have Shizuku permission using the official Shizuku API
      * @return true if we can perform DNS operations, false otherwise
      */
     private fun checkShizukuPermission(): Boolean {
-        return try {
-            // Try to access a system setting that requires Shizuku permission
-            // This is a practical test of whether Shizuku is actually working
-            val testValue = android.provider.Settings.Global.getString(
-                context.contentResolver, 
-                "private_dns_mode"
-            )
-            Log.d(TAG, "Shizuku permission check successful, testValue: $testValue")
-            true
-        } catch (e: SecurityException) {
-            Log.d(TAG, "Shizuku permission check failed - SecurityException", e)
-            false
-        } catch (e: Exception) {
-            Log.w(TAG, "Shizuku permission check failed - unexpected error", e)
-            false
-        }
+        // TODO: Implement using Shizuku API once dependencies are resolved
+        return false
     }
     
     /**
@@ -280,7 +225,7 @@ class ShizukuManager(private val context: Context) {
         try {
             Log.i(TAG, "Manually refreshing Shizuku status")
             
-            // Force a fresh status check
+            // Force a fresh status check using the official API
             checkShizukuStatus()
             
             // Also check if we can now perform DNS operations
@@ -298,59 +243,26 @@ class ShizukuManager(private val context: Context) {
     }
     
     /**
-     * Check current Shizuku status and update state
+     * Check current Shizuku status and update state using the official API
      */
     fun checkShizukuStatus() {
         try {
-            Log.d(TAG, "Checking Shizuku status")
+            Log.d(TAG, "Checking Shizuku status via official API")
             
-            if (!isShizukuInstalled()) {
-                Log.d(TAG, "Shizuku not installed")
-                _shizukuState.value = ShizukuState.NOT_INSTALLED
-                _hasPermission.value = false
-                _lastError.value = null
-                return
-            }
+            // TODO: Implement using Shizuku.pingBinder() once dependencies are resolved
+            // Check if Shizuku is available
+            // if (!Shizuku.pingBinder()) {
+            //     Log.d(TAG, "Shizuku service not available")
+            //     _shizukuState.value = ShizukuState.NOT_RUNNING
+            //     _hasPermission.value = false
+            //     _lastError.value = "Shizuku service is not running"
+            //     return
+            // }
             
-            Log.d(TAG, "Shizuku is installed, checking service status")
-            
-            // Check if Shizuku service is accessible
-            val isServiceRunning = isShizukuServiceRunning()
-            if (!isServiceRunning) {
-                Log.d(TAG, "Shizuku service not accessible")
-                _shizukuState.value = ShizukuState.NOT_RUNNING
-                _hasPermission.value = false
-                _lastError.value = "Shizuku service is not accessible"
-                return
-            }
-            
-            Log.d(TAG, "Shizuku service is accessible, checking read permission")
-            
-            // First check if we can read DNS settings
-            val hasReadPermission = checkShizukuPermission()
-            if (!hasReadPermission) {
-                Log.d(TAG, "Shizuku read permission not granted")
-                _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
-                _hasPermission.value = false
-                _lastError.value = "Read permission required through Shizuku"
-                return
-            }
-            
-            Log.d(TAG, "Shizuku read permission confirmed, checking write permission")
-            
-            // Now check if we can actually write DNS settings
-            val hasWritePermission = checkShizukuWritePermission()
-            if (hasWritePermission) {
-                Log.i(TAG, "Shizuku full permission confirmed - can read and write DNS")
-                _shizukuState.value = ShizukuState.READY
-                _hasPermission.value = true
-                _lastError.value = null
-            } else {
-                Log.d(TAG, "Shizuku read permission granted but write permission not working")
-                _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
-                _hasPermission.value = false
-                _lastError.value = "Write permission not working - DNS changes may fail"
-            }
+            Log.d(TAG, "Shizuku service not available - dependencies not resolved")
+            _shizukuState.value = ShizukuState.NOT_RUNNING
+            _hasPermission.value = false
+            _lastError.value = "Shizuku dependencies not resolved - please check Gradle configuration"
             
             Log.d(TAG, "Shizuku status updated: ${_shizukuState.value}")
             
@@ -374,11 +286,6 @@ class ShizukuManager(private val context: Context) {
             checkShizukuStatus()
             
             when (_shizukuState.value) {
-                ShizukuState.NOT_INSTALLED -> {
-                    Log.i(TAG, "Shizuku not installed - user needs to install it")
-                    _lastError.value = "Shizuku is not installed. Please install it first."
-                }
-                
                 ShizukuState.NOT_RUNNING -> {
                     Log.i(TAG, "Shizuku service not running - user needs to start it")
                     _lastError.value = "Shizuku service is not running. Please start it in the Shizuku app."
@@ -412,131 +319,32 @@ class ShizukuManager(private val context: Context) {
     }
     
     /**
-     * Request Shizuku permission by opening the Shizuku app
-     * Since we don't have the official API library, we'll open the app for manual permission granting
+     * Request Shizuku permission using the official API
      */
     fun requestPermission() {
         try {
-            if (!isShizukuInstalled()) {
-                Log.w(TAG, "Cannot request permission: Shizuku not installed")
-                Toast.makeText(context, "Shizuku is not installed", Toast.LENGTH_SHORT).show()
-                return
-            }
+            Log.i(TAG, "Requesting Shizuku permission via API")
             
-            if (!isShizukuServiceRunning()) {
-                Log.w(TAG, "Cannot request permission: Shizuku service not accessible")
-                Toast.makeText(context, "Shizuku service is not accessible", Toast.LENGTH_SHORT).show()
-                return
-            }
+            // TODO: Implement using Shizuku API once dependencies are resolved
+            // if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+            //     Shizuku.requestPermission(1)
+            // } else {
+            //     Log.i(TAG, "Already have Shizuku permission")
+            //     _shizukuState.value = ShizukuState.READY
+            //     _hasPermission.value = true
+            //     _lastError.value = null
+            //     }
             
-            Log.i(TAG, "Requesting Shizuku permission")
-            
-            // Method 1: Try to open Shizuku Manager app for permission request
-            try {
-                val intent = context.packageManager.getLaunchIntentForPackage(SHIZUKU_PACKAGE)
-                if (intent != null) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(intent)
-                    Log.i(TAG, "Shizuku Manager app opened for permission request")
-                    
-                    _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
-                    _lastError.value = "Shizuku app opened - please navigate to Apps > DNSFlip and grant permission"
-                    
-                    // Show helpful toast with instructions
-                    Toast.makeText(context, "Navigate to Apps > DNSFlip and grant permission", Toast.LENGTH_LONG).show()
-                    
-                    return
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to open Shizuku Manager app", e)
-            }
-            
-            // Method 2: Try privileged API package as fallback
-            try {
-                val intent = context.packageManager.getLaunchIntentForPackage(SHIZUKU_PRIVILEGED_PACKAGE)
-                if (intent != null) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(intent)
-                    Log.i(TAG, "Shizuku privileged API app opened")
-                    
-                    _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
-                    _lastError.value = "Shizuku privileged API opened - please check for permission options"
-                    
-                    return
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to open Shizuku privileged API app", e)
-            }
-            
-            // If all methods fail, provide clear error message
-            Log.e(TAG, "All Shizuku permission request methods failed")
-            _lastError.value = "Could not launch Shizuku permission request - please open Shizuku app manually and grant permission to DNSFlip"
-            Toast.makeText(context, "Please open Shizuku app manually and grant permission to DNSFlip", Toast.LENGTH_LONG).show()
+            Log.w(TAG, "Shizuku permission request not implemented - dependencies not resolved")
+            _lastError.value = "Shizuku dependencies not resolved - please check Gradle configuration"
             
         } catch (e: Exception) {
             Log.e(TAG, "Error requesting Shizuku permission", e)
             _lastError.value = "Failed to request permission: ${e.message}"
-            Toast.makeText(context, "Failed to request permission: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
     
-    /**
-     * Open Shizuku download page
-     */
-    fun openShizukuDownload() {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/RikkaApps/Shizuku/releases"))
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to open Shizuku download page", e)
-            Toast.makeText(context, "Could not open download page: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    /**
-     * Open Shizuku app
-     */
-    fun openShizukuApp() {
-        try {
-            // Try to open Shizuku Manager first (most user-friendly)
-            var appOpened = false
-            
-            try {
-                val intent = context.packageManager.getLaunchIntentForPackage(SHIZUKU_PACKAGE)
-                if (intent != null) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(intent)
-                    Log.i(TAG, "Shizuku Manager app opened")
-                    appOpened = true
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to open Shizuku Manager app", e)
-            }
-            
-            // Fallback to privileged API package if Manager not available
-            if (!appOpened) {
-                val intent = context.packageManager.getLaunchIntentForPackage(SHIZUKU_PRIVILEGED_PACKAGE)
-                if (intent != null) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(intent)
-                    Log.i(TAG, "Shizuku privileged API app opened")
-                    appOpened = true
-                } else {
-                    Log.w(TAG, "Shizuku app not found")
-                    Toast.makeText(context, "Shizuku app not found", Toast.LENGTH_SHORT).show()
-                }
-            }
-            
-            if (appOpened) {
-                Log.i(TAG, "Shizuku app opened successfully")
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to open Shizuku app", e)
-            Toast.makeText(context, "Failed to open Shizuku app: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }
+
     
     /**
      * Get status message for current state
@@ -544,9 +352,7 @@ class ShizukuManager(private val context: Context) {
      */
     fun getStatusMessage(): String {
         return when (_shizukuState.value) {
-            ShizukuState.NOT_INSTALLED -> "Shizuku is not installed"
             ShizukuState.NOT_RUNNING -> "Shizuku service is not accessible"
-            ShizukuState.NO_PERMISSION -> "Permission denied"
             ShizukuState.PERMISSION_REQUIRED -> "Permission required"
             ShizukuState.READY -> "Shizuku is ready and working"
             ShizukuState.ERROR -> "Error: ${_lastError.value ?: "Unknown error"}"
@@ -559,9 +365,7 @@ class ShizukuManager(private val context: Context) {
      */
     fun getRecommendedAction(): String {
         return when (_shizukuState.value) {
-            ShizukuState.NOT_INSTALLED -> "Install Shizuku"
             ShizukuState.NOT_RUNNING -> "Start Shizuku service"
-            ShizukuState.NO_PERMISSION -> "Use ADB method"
             ShizukuState.PERMISSION_REQUIRED -> "Grant permission"
             ShizukuState.READY -> "Ready to use"
             ShizukuState.ERROR -> "Check error details"
@@ -582,26 +386,13 @@ class ShizukuManager(private val context: Context) {
     fun clearError() {
         _lastError.value = null
     }
-    
-    /**
-     * Clean up resources and unregister listeners
-     */
-    fun cleanup() {
-        try {
-            Log.d(TAG, "ShizukuManager cleanup completed")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error during cleanup", e)
-        }
-    }
 }
 
 /**
  * Enum representing different Shizuku states
  */
 enum class ShizukuState {
-    NOT_INSTALLED,
     NOT_RUNNING,
-    NO_PERMISSION,
     PERMISSION_REQUIRED,
     READY,
     ERROR
