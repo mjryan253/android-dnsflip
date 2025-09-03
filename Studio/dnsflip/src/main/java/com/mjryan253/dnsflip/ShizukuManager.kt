@@ -293,6 +293,7 @@ class ShizukuManager(private val context: Context) {
 
             Log.d(TAG, "Shizuku status updated: ${_shizukuState.value}")
 
+
         } catch (e: Exception) {
             Log.e(TAG, "Error checking Shizuku status", e)
             _shizukuState.value = ShizukuState.ERROR

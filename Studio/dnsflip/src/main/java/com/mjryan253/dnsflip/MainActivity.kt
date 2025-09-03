@@ -77,6 +77,8 @@ fun MainScreen(
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
     var showErrorDetails by remember { mutableStateOf(false) }
+    var lastDnsError by remember { mutableStateOf<String?>(null) }
+    var showTroubleshootingInfo by remember { mutableStateOf(false) }
     
     // Collect Shizuku state - this is the single source of truth for permissions
     val shizukuState by shizukuManager.shizukuState.collectAsState()
@@ -263,6 +265,19 @@ fun MainScreen(
                         Text("Test DNS Operations")
                     }
                     
+                    Button(
+                        onClick = { 
+                            val troubleshootingInfo = dnsManager.getTroubleshootingInfo(context)
+                            lastDnsError = "=== SHIZUKU TROUBLESHOOTING ===\n\n$troubleshootingInfo"
+                            showSnackbar = true
+                            snackbarMessage = "Troubleshooting info displayed below"
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = StatusWarning)
+                    ) {
+                        Text("Troubleshoot")
+                    }
+                    
                     when (shizukuState) {
                         com.mjryan253.dnsflip.ShizukuState.NOT_RUNNING -> {
                             Button(
@@ -342,13 +357,13 @@ fun MainScreen(
                 if (!hasPermission) {
                     showOnboardingDialog = true
                 } else {
-                    val success = if (isCustomDnsActive) {
-                        dnsManager.setDnsModeOff(context)
+                    val result = if (isCustomDnsActive) {
+                        dnsManager.setDnsModeOffDetailed(context)
                     } else {
-                        dnsManager.setDnsModeOn(context, dnsHostname)
+                        dnsManager.setDnsModeOnDetailed(context, dnsHostname)
                     }
                     
-                    if (success) {
+                    if (result.success) {
                         currentDnsMode = dnsManager.getCurrentDnsMode(context)
                         
                         // Save hostname to SharedPreferences on successful DNS change
@@ -361,8 +376,19 @@ fun MainScreen(
                         
                         snackbarMessage = if (isCustomDnsActive) "Switched to System DNS" else "Switched to Custom DNS"
                         showSnackbar = true
+                        lastDnsError = null // Clear any previous errors
                     } else {
-                        snackbarMessage = "Failed to change DNS settings"
+                        // Enhanced error reporting with detailed information
+                        lastDnsError = buildString {
+                            append("DNS Change Failed\n\n")
+                            append("Error: ${result.errorMessage}\n")
+                            append("Code: ${result.errorCode}\n")
+                            if (result.details != null) {
+                                append("Details: ${result.details}\n")
+                            }
+                        }
+                        
+                        snackbarMessage = "DNS change failed: ${result.errorMessage}"
                         showSnackbar = true
                     }
                 }
@@ -411,6 +437,66 @@ fun MainScreen(
             }
         }
         
+        // Error Details Card (shown when DNS operations fail)
+        if (lastDnsError != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = StatusError.copy(alpha = 0.1f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "DNS Operation Failed",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = StatusError
+                    )
+                    
+                    Text(
+                        text = lastDnsError!!,
+                        fontSize = 12.sp,
+                        color = TextPrimary,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { showTroubleshootingInfo = !showTroubleshootingInfo },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = StatusWarning)
+                        ) {
+                            Text(if (showTroubleshootingInfo) "Hide Details" else "Show Troubleshooting")
+                        }
+                        
+                        Button(
+                            onClick = { lastDnsError = null },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = SwitchTrack)
+                        ) {
+                            Text("Dismiss")
+                        }
+                    }
+                    
+                    if (showTroubleshootingInfo) {
+                        Text(
+                            text = dnsManager.getTroubleshootingInfo(context),
+                            fontSize = 10.sp,
+                            color = TextSecondary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        )
+                    }
+                }
+            }
+        }
+        
         // Permission Check Button
         Button(
             onClick = {
@@ -436,7 +522,7 @@ fun MainScreen(
             )
         }
         
-        // Permission Instructions (shown when permission is not granted)
+        // Enhanced Permission Instructions (shown when permission is not granted)
         if (!hasPermission) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -459,9 +545,17 @@ fun MainScreen(
                         color = TextPrimary
                     )
                     Text(
-                        text = "1. Install Shizuku from the provided link\n2. Start Shizuku service\n3. Grant permission to DNSFlip in Shizuku app",
+                        text = "1. Install Shizuku from the provided link\n2. Start Shizuku service\n3. Grant permission to DNSFlip in Shizuku app\n4. Restart DNSFlip after granting permission",
                         fontSize = 12.sp,
                         color = TextSecondary
+                    )
+                    
+                    // Additional troubleshooting tips
+                    Text(
+                        text = "Troubleshooting Tips:\n• Ensure Shizuku service is running\n• Check if permission was actually granted\n• Try refreshing Shizuku status\n• Restart the app after permission changes",
+                        fontSize = 11.sp,
+                        color = TextSecondary,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             }
