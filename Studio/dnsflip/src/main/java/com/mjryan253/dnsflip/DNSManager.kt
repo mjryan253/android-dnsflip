@@ -262,4 +262,52 @@ class DNSManager {
             "Unexpected error: ${e.message}"
         }
     }
+
+    /**
+     * Get detailed DNS configuration information
+     * @param context Application context
+     * @return Detailed DNS configuration string
+     */
+    fun getDetailedDnsInfo(context: Context): String {
+        return try {
+            val mode = getCurrentDnsMode(context)
+            val hostname = getCurrentDnsHostname(context)
+            
+            val builder = StringBuilder()
+            builder.append("Mode: $mode\n")
+            
+            when (mode) {
+                "custom" -> {
+                    builder.append("Custom DNS: $hostname\n")
+                    builder.append("Status: Active")
+                }
+                "automatic" -> {
+                    builder.append("System DNS: Automatic\n")
+                    builder.append("Status: Active")
+                }
+                "off" -> {
+                    builder.append("System DNS: Disabled\n")
+                    builder.append("Status: Inactive")
+                }
+                "opportunistic" -> {
+                    builder.append("System DNS: Opportunistic\n")
+                    builder.append("Status: Active")
+                }
+                else -> {
+                    builder.append("Status: Unknown")
+                }
+            }
+            
+            builder.toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting detailed DNS info", e)
+            "Error: Unable to get DNS information"
+        }
+    }
+    
+    /**
+     * Get current DNS mode
+     * @param context Application context
+     * @return Current DNS mode as string
+     */
 }

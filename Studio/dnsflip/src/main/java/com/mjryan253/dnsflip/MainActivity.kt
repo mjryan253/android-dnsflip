@@ -78,24 +78,17 @@ fun MainScreen(
     var snackbarMessage by remember { mutableStateOf("") }
     var showErrorDetails by remember { mutableStateOf(false) }
     
-    // Collect Shizuku state
+    // Collect Shizuku state - this is the single source of truth for permissions
     val shizukuState by shizukuManager.shizukuState.collectAsState()
     val hasShizukuPermission by shizukuManager.hasPermission.collectAsState()
     val lastError by shizukuManager.lastError.collectAsState()
     
-    // Check permission and DNS status on startup
+    // Initialize state
     LaunchedEffect(Unit) {
         Log.d("MainActivity", "App startup - checking permissions and DNS status")
         
-        // First check Shizuku status and automatically request permissions if needed
-        Log.d("MainActivity", "Auto-checking Shizuku permissions on startup")
-        shizukuManager.autoCheckAndRequestPermissions()
-        
-        // Wait a moment for Shizuku status to update
-        delay(1000)
-        
-        // Now check DNS permission and status
-        hasPermission = dnsManager.hasDnsPermission(context)
+        // Use ShizukuManager's permission state as the single source of truth
+        hasPermission = hasShizukuPermission
         currentDnsMode = dnsManager.getCurrentDnsMode(context)
         
         // Load saved hostname from SharedPreferences
@@ -116,30 +109,18 @@ fun MainScreen(
         }
     }
     
-    // Update permission status when Shizuku state changes
-    LaunchedEffect(hasShizukuPermission, shizukuState) {
-        Log.d("MainActivity", "Shizuku state changed - hasShizukuPermission: $hasShizukuPermission, shizukuState: $shizukuState")
+    // Update permission state when Shizuku state changes
+    LaunchedEffect(hasShizukuPermission) {
+        Log.d("MainActivity", "Shizuku permission state changed: $hasShizukuPermission")
+        hasPermission = hasShizukuPermission
         
-        if (hasShizukuPermission && shizukuState == com.mjryan253.dnsflip.ShizukuState.READY) {
-            Log.i("MainActivity", "Shizuku permission granted, checking DNS permission")
-            hasPermission = dnsManager.hasDnsPermission(context)
-            if (hasPermission) {
-                showOnboardingDialog = false
-                snackbarMessage = "Permission granted via Shizuku!"
-                showSnackbar = true
-                Log.i("MainActivity", "DNS permission confirmed via Shizuku")
-            } else {
-                Log.w("MainActivity", "Shizuku permission granted but DNS permission still denied")
-                snackbarMessage = "Shizuku permission granted but DNS permission still denied"
-                showSnackbar = true
-            }
-        } else if (shizukuState == com.mjryan253.dnsflip.ShizukuState.ERROR) {
-            Log.w("MainActivity", "Shizuku error state detected")
-            snackbarMessage = "Shizuku error: ${lastError ?: "Unknown error"}"
+        if (hasPermission) {
+            // Refresh DNS state when permissions are granted
+            currentDnsMode = dnsManager.getCurrentDnsMode(context)
+            showOnboardingDialog = false
+            snackbarMessage = "Permission granted via Shizuku!"
             showSnackbar = true
-        } else if (shizukuState == com.mjryan253.dnsflip.ShizukuState.PERMISSION_REQUIRED) {
-            Log.d("MainActivity", "Shizuku permission required")
-            // Don't show snackbar here as it might be from a permission request
+            Log.i("MainActivity", "Shizuku permission confirmed")
         }
     }
     
@@ -252,6 +233,36 @@ fun MainScreen(
                         Text("Refresh Status")
                     }
                     
+                    Button(
+                        onClick = { shizukuManager.refreshShizukuStatus() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
+                    ) {
+                        Text("Refresh After Grant")
+                    }
+                }
+                
+                // Additional Shizuku buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { 
+                            val success = shizukuManager.testDnsOperations()
+                            if (success) {
+                                snackbarMessage = "DNS operations test successful! Shizuku permissions are working."
+                            } else {
+                                snackbarMessage = "DNS operations test failed. Permissions may not be granted."
+                            }
+                            showSnackbar = true
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
+                    ) {
+                        Text("Test DNS Operations")
+                    }
+                    
                     when (shizukuState) {
                         com.mjryan253.dnsflip.ShizukuState.NOT_INSTALLED -> {
                             Button(
@@ -288,7 +299,7 @@ fun MainScreen(
             }
         }
         
-        // DNS Status
+        // DNS Status Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = SurfaceDark),
@@ -300,15 +311,34 @@ fun MainScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Current DNS Status",
+                    text = "Current DNS Configuration",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     color = TextSecondary
                 )
+                
+                // Detailed DNS info
                 Text(
-                    text = dnsManager.getDnsStatusDescription(context),
-                    fontSize = 16.sp,
+                    text = dnsManager.getDetailedDnsInfo(context),
+                    fontSize = 14.sp,
                     color = if (hasPermission) TextPrimary else StatusError,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                
+                // Permission status - now unified with ShizukuManager
+                Text(
+                    text = if (hasPermission) "✓ Permissions Granted" else "✗ Permissions Required",
+                    fontSize = 12.sp,
+                    color = if (hasPermission) StatusSuccess else StatusError,
+                    textAlign = TextAlign.Center
+                )
+                
+                // Last updated timestamp
+                Text(
+                    text = "Last updated: ${java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}",
+                    fontSize = 10.sp,
+                    color = TextSecondary,
                     textAlign = TextAlign.Center
                 )
             }
@@ -393,7 +423,8 @@ fun MainScreen(
         // Permission Check Button
         Button(
             onClick = {
-                hasPermission = dnsManager.hasDnsPermission(context)
+                // Use ShizukuManager's permission state as the single source of truth
+                hasPermission = hasShizukuPermission
                 currentDnsMode = dnsManager.getCurrentDnsMode(context)
                 if (hasPermission) {
                     snackbarMessage = "Permission granted!"
@@ -432,25 +463,15 @@ fun MainScreen(
                         color = StatusError
                     )
                     Text(
-                        text = "This app needs WRITE_SECURE_SETTINGS permission to change DNS settings. Grant permission using ADB:",
+                        text = "This app needs WRITE_SECURE_SETTINGS permission to change DNS settings. Grant permission using Shizuku:",
                         fontSize = 14.sp,
                         color = TextPrimary
                     )
-                    Button(
-                        onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText(
-                                "ADB Command",
-                                "adb shell pm grant com.mjryan253.dnsflip android.permission.WRITE_SECURE_SETTINGS"
-                            )
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, "ADB command copied to clipboard!", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = StatusError)
-                    ) {
-                        Text("Copy ADB Command")
-                    }
+                    Text(
+                        text = "1. Install Shizuku from the provided link\n2. Start Shizuku service\n3. Grant permission to DNSFlip in Shizuku app",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
                 }
             }
         }
@@ -462,7 +483,8 @@ fun MainScreen(
         onDismiss = { showOnboardingDialog = false },
         shizukuManager = shizukuManager,
         onPermissionGranted = {
-            hasPermission = dnsManager.hasDnsPermission(context)
+            // Use ShizukuManager's permission state as the single source of truth
+            hasPermission = hasShizukuPermission
             showOnboardingDialog = false
             snackbarMessage = "Permission granted! You can now use DNSFlip."
             showSnackbar = true

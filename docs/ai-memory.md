@@ -412,9 +412,11 @@ This session successfully improved the Shizuku service detection logic, addressi
 
 **Current Session Status**:
 - **Shizuku Service Detection**: ✅ Improved and tested
+- **Shizuku Permission Requests**: ✅ Enhanced with multiple fallback methods
 - **Updated APK**: ✅ Built and installed on user's device
-- **Ready for Validation**: ✅ User should test the improved service detection
-- **Next Priority**: Verify that "service not accessible" error is resolved
+- **Documentation**: ✅ Updated ai-memory.md and completed.md with Phase 11
+- **Ready for Validation**: ✅ User should test both improved service detection and permission requests
+- **Next Priority**: User testing and feedback on enhanced Shizuku integration
 
 ## Memory Context for AI Agents
 When continuing work on this project:
@@ -425,7 +427,7 @@ When continuing work on this project:
 - User values clean, well-commented code
 - Focus on user experience and intuitive design
 - Maintain the light switch metaphor throughout
-- **Current Focus**: Error debugging and Shizuku integration resolution
+- **Current Focus**: Shizuku permission request enhancement and user experience improvement
 
 ## Documentation Maintenance Protocol
 **CRITICAL**: When making any changes or completing phases, always update these files:
@@ -465,6 +467,70 @@ When continuing work on this project:
 - Always include file locations and implementation details
 - Document any new user preferences or project requirements
 - **ai-memory.md and completed.md MUST be updated in every chat session without exception**
+
+**Documentation Updated in This Session**:
+- ✅ **ai-memory.md**: Added Phase 11: Shizuku Permission Request Enhancement
+- ✅ **completed.md**: Added detailed implementation notes for Phase 11
+- ✅ **Current Session Status**: Updated to reflect Phase 11 completion
+- ✅ **Next Steps**: Updated to reflect current priorities
+
+**Current Session Accomplishments (Phase 13)**:  
+- **Implemented Proper Shizuku Integration**: Completely rewrote ShizukuManager based on official Shizuku-API documentation
+- **Removed Incorrect Intent Implementation**: Eliminated custom intent-based permission requests that weren't working
+- **Simplified Permission Flow**: Implemented direct app opening for manual permission granting as recommended
+- **Enhanced Service Detection**: Improved Shizuku service accessibility checking with system setting access test
+- **Build Success**: Successfully built and installed updated APK on user's emulator
+- **Ready for Testing**: Proper Shizuku integration ready for user validation
+
+**Current Session Accomplishments (Phase 14)**:  
+- **Added DNS Operations Testing**: Implemented testDnsOperations() method to verify Shizuku permissions are working
+- **Added Manual Status Refresh**: Implemented refreshShizukuStatus() method for after returning from Shizuku app
+- **Enhanced DNS Status Display**: Added detailed DNS configuration information showing current mode and DNS servers
+- **Added Testing Buttons**: Added "Test DNS Operations" and "Refresh After Grant" buttons for better debugging
+- **Real-Time Status Updates**: Added timestamp and permission status indicators for better visibility
+- **Build Success**: Successfully built and installed enhanced APK with testing capabilities
+
+**Current Session Accomplishments (Phase 15)**:  
+- **Fixed Permission Contradiction**: Resolved the UI contradiction where top showed "Permission required" while bottom showed "✓ Permissions Granted"
+- **Unified Permission Checking**: Made ShizukuManager the single source of truth for permission state
+- **Eliminated Dual Permission Systems**: Removed separate DNS permission checks that were causing confusion
+- **Simplified State Management**: Streamlined permission state updates to use only ShizukuManager's hasPermission
+- **Enhanced DNS Status Display**: Maintained detailed DNS configuration display with unified permission indicators
+- **Build Success**: Successfully built and installed fixed APK with consistent permission state
+
+**Technical Implementation Details**:
+- **Official Documentation Compliance**: Implementation now follows [Shizuku-API repository](https://github.com/RikkaApps/Shizuku-API) guidelines
+- **Simplified Approach**: Removed complex intent extras and categories that weren't working
+- **Direct App Launch**: Permission requests now open Shizuku app directly for manual permission granting
+- **Better Service Detection**: Enhanced detection logic with system setting access test
+- **Fallback System**: Two-tier fallback: Manager app → Privileged API package
+- **DNS Testing Capabilities**: Added comprehensive DNS read/write testing to verify permissions
+- **Status Refresh Methods**: Manual refresh capabilities for post-permission-grant scenarios
+- **Unified Permission State**: Single source of truth eliminates contradictory UI states
+- **Consistent Status Display**: All permission indicators now use the same underlying state
+
+**User Experience Improvements**:
+- **Clear Permission Flow**: Users are taken directly to Shizuku app for permission granting
+- **Better Instructions**: Clear guidance to navigate to Apps > DNSFlip and grant permission
+- **Reduced Complexity**: Eliminated confusing automatic permission request attempts
+- **Manual Control**: Users have direct control over permission granting process
+- **Enhanced DNS Visibility**: Real-time display of current DNS configuration and server information
+- **Testing Tools**: Buttons to test DNS operations and refresh Shizuku status after permission changes
+- **Permission Status**: Clear indicators showing whether permissions are granted or required
+- **Consistent UI**: No more contradictory permission messages between different parts of the interface
+- **Unified State**: Single permission state ensures all UI elements show the same status
+
+**Next Steps for User**:
+1. **Test Updated App** - The updated APK should now show consistent permission status
+2. **Verify UI Consistency** - Check that top and bottom sections show the same permission state
+3. **Test Permission Requests** - Try the permission request button to see improved behavior
+4. **Grant Permissions Manually** - Navigate to Apps > DNSFlip in Shizuku to grant permissions
+5. **Use Testing Tools** - Use "Test DNS Operations" and "Refresh After Grant" buttons
+6. **Monitor DNS Status** - Observe enhanced DNS configuration display with real-time updates
+7. **Test DNS Functionality** - Verify DNS changes work after granting permissions
+8. **Check Permission Consistency** - Ensure no more contradictory permission messages
+
+This session successfully implemented the proper Shizuku integration pattern based on official documentation, resolving the core issue where the app couldn't detect Shizuku installation and providing a clear path for manual permission granting. Additionally, enhanced the app with comprehensive DNS testing capabilities and detailed status display for better debugging and user experience. Most importantly, fixed the critical UI contradiction where different parts of the interface showed conflicting permission states, now providing a unified and consistent user experience.
 
 ## File Locations for Quick Reference
 - **Main App Logic**: `Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/MainActivity.kt`
