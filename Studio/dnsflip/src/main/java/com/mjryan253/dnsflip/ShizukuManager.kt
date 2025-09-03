@@ -3,8 +3,8 @@ package com.mjryan253.dnsflip
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import dev.rikka.shizuku.api.Shizuku
-import dev.rikka.shizuku.api.Shizuku.OnRequestPermissionResultListener
+import rikka.shizuku.Shizuku
+import rikka.shizuku.Shizuku.OnRequestPermissionResultListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,8 +43,8 @@ class ShizukuManager(private val context: Context) {
     val lastError: StateFlow<String?> = _lastError.asStateFlow()
     
     // Shizuku permission result listener for handling permission grant/deny results
-    private val requestPermissionResultListener =
-        OnRequestPermissionResultListener { requestCode, grantResult ->
+    private val requestPermissionResultListener = object : OnRequestPermissionResultListener {
+        override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
             if (requestCode == 1) {
                 if (grantResult == PackageManager.PERMISSION_GRANTED) {
                     _shizukuState.value = ShizukuState.READY
@@ -57,6 +57,7 @@ class ShizukuManager(private val context: Context) {
                 }
             }
         }
+    }
     
     init {
         // Register Shizuku permission result listener
