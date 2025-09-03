@@ -46,7 +46,12 @@ fun LightSwitch(
     )
     
     val thumbColor = if (isOn) SwitchOn else SwitchOff
-    val trackColorAnimated = Color.lerp(SwitchTrack, SwitchOn.copy(alpha = 0.3f), trackColor)
+    val trackColorAnimated = Color(
+        red = SwitchTrack.red + (SwitchOn.red - SwitchTrack.red) * trackColor,
+        green = SwitchTrack.green + (SwitchOn.green - SwitchTrack.green) * trackColor,
+        blue = SwitchTrack.blue + (SwitchOn.blue - SwitchTrack.blue) * trackColor,
+        alpha = SwitchTrack.alpha + (SwitchOn.alpha - SwitchTrack.alpha) * trackColor
+    )
     
     Box(
         modifier = modifier
@@ -124,7 +129,12 @@ fun LargeLightSwitch(
     )
     
     val thumbColor = if (isOn) SwitchOn else SwitchOff
-    val trackColorAnimated = Color.lerp(SwitchTrack, SwitchOn.copy(alpha = 0.2f), trackColor)
+    val trackColorAnimated = Color(
+        red = SwitchTrack.red + (SwitchOn.red - SwitchTrack.red) * trackColor,
+        green = SwitchTrack.green + (SwitchOn.green - SwitchTrack.green) * trackColor,
+        blue = SwitchTrack.blue + (SwitchOn.blue - SwitchTrack.blue) * trackColor,
+        alpha = SwitchTrack.alpha + (SwitchOn.alpha - SwitchTrack.alpha) * trackColor
+    )
     
     Column(
         modifier = modifier,

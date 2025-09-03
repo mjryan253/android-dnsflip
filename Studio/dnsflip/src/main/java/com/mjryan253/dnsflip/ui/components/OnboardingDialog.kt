@@ -135,7 +135,7 @@ fun OnboardingDialog(
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
                                     ) {
-                                        Icon(Icons.Default.Download, contentDescription = null)
+                                        Icon(Icons.Default.Add, contentDescription = null)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text("Install Shizuku")
                                     }
@@ -157,7 +157,7 @@ fun OnboardingDialog(
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
                                     ) {
-                                        Icon(Icons.Default.Security, contentDescription = null)
+                                        Icon(Icons.Default.Lock, contentDescription = null)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text("Grant Permission")
                                     }
@@ -219,7 +219,7 @@ fun OnboardingDialog(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text("Learn more about Shizuku")
-                                    Icon(Icons.Default.ExpandMore, contentDescription = null)
+                                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
                                 }
                             }
                         }
@@ -253,7 +253,7 @@ fun OnboardingDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(containerColor = SwitchOff)
                             ) {
-                                Icon(Icons.Default.Terminal, contentDescription = null)
+                                Icon(Icons.Default.Settings, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("Show ADB Instructions")
                             }
@@ -292,7 +292,7 @@ fun OnboardingDialog(
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = StatusSuccess)
                                     ) {
-                                        Icon(Icons.Default.ContentCopy, contentDescription = null)
+                                        Icon(Icons.Default.Check, contentDescription = null)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text("Copy Command")
                                     }
@@ -316,7 +316,7 @@ fun OnboardingDialog(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    Icons.Default.Help,
+                                    Icons.Default.Info,
                                     contentDescription = null,
                                     tint = StatusError
                                 )
@@ -340,7 +340,7 @@ fun OnboardingDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(containerColor = StatusError)
                             ) {
-                                Icon(Icons.Default.OpenInNew, contentDescription = null)
+                                Icon(Icons.Default.ArrowForward, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("View Documentation")
                             }
@@ -497,7 +497,7 @@ fun AdbInstructionsDialog(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = StatusSuccess)
                         ) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = null)
+                            Icon(Icons.Default.Check, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Copy Command")
                         }

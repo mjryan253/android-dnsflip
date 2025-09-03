@@ -3,6 +3,7 @@ package com.mjryan253.dnsflip
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +25,7 @@ import kotlinx.coroutines.delay
 import com.mjryan253.dnsflip.ui.components.LargeLightSwitch
 import com.mjryan253.dnsflip.ui.components.OnboardingDialog
 import com.mjryan253.dnsflip.ui.theme.*
+import android.util.Log
 
 /**
  * MainActivity - Primary entry point for DNSFlip application
@@ -74,13 +76,25 @@ fun MainScreen(
     var showOnboardingDialog by remember { mutableStateOf(false) }
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
+    var showErrorDetails by remember { mutableStateOf(false) }
     
     // Collect Shizuku state
     val shizukuState by shizukuManager.shizukuState.collectAsState()
     val hasShizukuPermission by shizukuManager.hasPermission.collectAsState()
+    val lastError by shizukuManager.lastError.collectAsState()
     
     // Check permission and DNS status on startup
     LaunchedEffect(Unit) {
+        Log.d("MainActivity", "App startup - checking permissions and DNS status")
+        
+        // First check Shizuku status and automatically request permissions if needed
+        Log.d("MainActivity", "Auto-checking Shizuku permissions on startup")
+        shizukuManager.autoCheckAndRequestPermissions()
+        
+        // Wait a moment for Shizuku status to update
+        delay(1000)
+        
+        // Now check DNS permission and status
         hasPermission = dnsManager.hasDnsPermission(context)
         currentDnsMode = dnsManager.getCurrentDnsMode(context)
         
@@ -94,6 +108,8 @@ fun MainScreen(
             }
         }
         
+        Log.d("MainActivity", "Initial state - hasPermission: $hasPermission, currentDnsMode: $currentDnsMode, dnsHostname: $dnsHostname")
+        
         // Show onboarding if no permission
         if (!hasPermission) {
             showOnboardingDialog = true
@@ -102,12 +118,38 @@ fun MainScreen(
     
     // Update permission status when Shizuku state changes
     LaunchedEffect(hasShizukuPermission, shizukuState) {
+        Log.d("MainActivity", "Shizuku state changed - hasShizukuPermission: $hasShizukuPermission, shizukuState: $shizukuState")
+        
         if (hasShizukuPermission && shizukuState == com.mjryan253.dnsflip.ShizukuState.READY) {
+            Log.i("MainActivity", "Shizuku permission granted, checking DNS permission")
             hasPermission = dnsManager.hasDnsPermission(context)
             if (hasPermission) {
                 showOnboardingDialog = false
                 snackbarMessage = "Permission granted via Shizuku!"
                 showSnackbar = true
+                Log.i("MainActivity", "DNS permission confirmed via Shizuku")
+            } else {
+                Log.w("MainActivity", "Shizuku permission granted but DNS permission still denied")
+                snackbarMessage = "Shizuku permission granted but DNS permission still denied"
+                showSnackbar = true
+            }
+        } else if (shizukuState == com.mjryan253.dnsflip.ShizukuState.ERROR) {
+            Log.w("MainActivity", "Shizuku error state detected")
+            snackbarMessage = "Shizuku error: ${lastError ?: "Unknown error"}"
+            showSnackbar = true
+        } else if (shizukuState == com.mjryan253.dnsflip.ShizukuState.PERMISSION_REQUIRED) {
+            Log.d("MainActivity", "Shizuku permission required")
+            // Don't show snackbar here as it might be from a permission request
+        }
+    }
+    
+    // Periodically refresh Shizuku status to catch changes
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000) // Check every 5 seconds
+            if (shizukuState != com.mjryan253.dnsflip.ShizukuState.READY) {
+                Log.d("MainActivity", "Periodic Shizuku status check")
+                shizukuManager.checkShizukuStatus()
             }
         }
     }
@@ -139,6 +181,112 @@ fun MainScreen(
             color = TextPrimary,
             textAlign = TextAlign.Center
         )
+        
+        // Shizuku Status Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Shizuku Status",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextSecondary
+                )
+                Text(
+                    text = shizukuManager.getStatusMessage(),
+                    fontSize = 16.sp,
+                    color = when (shizukuState) {
+                        com.mjryan253.dnsflip.ShizukuState.READY -> StatusSuccess
+                        com.mjryan253.dnsflip.ShizukuState.ERROR -> StatusError
+                        else -> TextSecondary
+                    },
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = shizukuManager.getRecommendedAction(),
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+                
+                // Error details button
+                if (lastError != null) {
+                    Button(
+                        onClick = { showErrorDetails = !showErrorDetails },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = StatusError.copy(alpha = 0.8f))
+                    ) {
+                        Text(if (showErrorDetails) "Hide Error Details" else "Show Error Details")
+                    }
+                    
+                    if (showErrorDetails) {
+                        Text(
+                            text = lastError!!,
+                            fontSize = 12.sp,
+                            color = StatusError,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        )
+                    }
+                }
+                
+                // Shizuku action buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { shizukuManager.checkShizukuStatus() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = SwitchTrack)
+                    ) {
+                        Text("Refresh Status")
+                    }
+                    
+                    when (shizukuState) {
+                        com.mjryan253.dnsflip.ShizukuState.NOT_INSTALLED -> {
+                            Button(
+                                onClick = { shizukuManager.openShizukuDownload() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
+                            ) {
+                                Text("Install Shizuku")
+                            }
+                        }
+                        com.mjryan253.dnsflip.ShizukuState.NOT_RUNNING -> {
+                            Button(
+                                onClick = { shizukuManager.openShizukuApp() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
+                            ) {
+                                Text("Start Shizuku")
+                            }
+                        }
+                        com.mjryan253.dnsflip.ShizukuState.PERMISSION_REQUIRED -> {
+                            Button(
+                                onClick = { shizukuManager.requestPermission() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
+                            ) {
+                                Text("Request Permission")
+                            }
+                        }
+                        else -> {
+                            // No additional action needed
+                        }
+                    }
+                }
+            }
+        }
         
         // DNS Status
         Card(
