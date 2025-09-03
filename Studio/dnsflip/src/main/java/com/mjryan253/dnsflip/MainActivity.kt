@@ -289,12 +289,24 @@ fun MainScreen(
                             }
                         }
                         com.mjryan253.dnsflip.ShizukuState.PERMISSION_REQUIRED -> {
-                            Button(
-                                onClick = { shizukuManager.requestPermission() },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text("Request Permission")
+                                Button(
+                                    onClick = { shizukuManager.requestPermission() },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
+                                ) {
+                                    Text("Request General Permission")
+                                }
+                                
+                                Button(
+                                    onClick = { shizukuManager.requestWriteSecureSettingsPermission() },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = StatusWarning)
+                                ) {
+                                    Text("Request DNS Permission")
+                                }
                             }
                         }
                         else -> {
@@ -545,16 +557,25 @@ fun MainScreen(
                         color = TextPrimary
                     )
                     Text(
-                        text = "1. Install Shizuku from the provided link\n2. Start Shizuku service\n3. Grant permission to DNSFlip in Shizuku app\n4. Restart DNSFlip after granting permission",
+                        text = "1. Install Shizuku from the provided link\n2. Start Shizuku service\n3. Grant permission to DNSFlip in Shizuku app\n4. Ensure WRITE_SECURE_SETTINGS is specifically granted\n5. Restart DNSFlip after granting permission",
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
                     
                     // Additional troubleshooting tips
                     Text(
-                        text = "Troubleshooting Tips:\n• Ensure Shizuku service is running\n• Check if permission was actually granted\n• Try refreshing Shizuku status\n• Restart the app after permission changes",
+                        text = "Troubleshooting Tips:\n• Ensure Shizuku service is running\n• Check if WRITE_SECURE_SETTINGS permission is specifically granted\n• Try refreshing Shizuku status\n• Restart the app after permission changes\n• Check Shizuku app settings for specific permissions",
                         fontSize = 11.sp,
                         color = TextSecondary,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    
+                    // Specific permission guidance
+                    Text(
+                        text = "Important: DNSFlip needs the WRITE_SECURE_SETTINGS permission specifically, not just general Shizuku access. Check your Shizuku app settings!",
+                        fontSize = 12.sp,
+                        color = StatusWarning,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }

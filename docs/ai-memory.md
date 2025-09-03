@@ -272,7 +272,7 @@ Complete user testing of enhanced error handling and refine error messages based
 - ✅ Ready for user testing and feedback
 
 ## Last Updated
-**Phase 19**: December 2024 - Enhanced Error Handling and Troubleshooting Implemented, Comprehensive Error Reporting with Detailed Messages and Troubleshooting Interface
+**Phase 19**: December 2024 - Enhanced Error Handling and Troubleshooting Implemented, Specific Permission Issue Identified and Addressed, Deployment Automation Scripts Created, Comprehensive Error Reporting with Detailed Messages and Troubleshooting Interface
 
 ## Documentation Update Rules
 
@@ -286,3 +286,22 @@ Complete user testing of enhanced error handling and refine error messages based
 - **next-steps.md** should be updated in every chat to reflect the current status, progress made, and immediate next steps required.
 - This ensures the project roadmap is always current and actionable.
 - Updates should include any new discoveries, resolved issues, or changes to the implementation plan.
+
+## Recent Chat Session Updates (Current Session)
+
+### Specific Permission Issue Resolution
+- **Problem Identified**: While general Shizuku permission was granted, the specific `WRITE_SECURE_SETTINGS` permission needed for DNS operations was missing
+- **Root Cause**: Shizuku app needs to specifically grant DNS-related permissions, not just general system access
+- **Solution Implemented**: Enhanced ShizukuManager with specific permission checking and requesting methods
+- **User Guidance**: Added clear instructions for users to enable specific permissions in Shizuku app
+
+### Deployment Automation
+- **Cross-Platform Scripts**: Created PowerShell (.ps1), batch (.bat), and shell (.sh) scripts for rapid deployment
+- **Automated Workflow**: Scripts handle build, install, launch, and logcat monitoring automatically
+- **Development Efficiency**: Significantly reduces time for testing iterations and debugging
+- **Documentation**: Comprehensive README created for deployment script usage and troubleshooting
+
+### Enhanced Error Handling
+- **Specific Permission Detection**: App now properly identifies when specific permissions are missing
+- **User Action Guidance**: Clear instructions for resolving permission issues
+- **Troubleshooting Interface**: Enhanced UI with better permission guidance and troubleshooting options

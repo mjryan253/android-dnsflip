@@ -182,6 +182,61 @@ class ShizukuManager(private val context: Context) {
     }
     
     /**
+     * Check if we have the specific WRITE_SECURE_SETTINGS permission needed for DNS operations
+     * @return true if we have the required permission, false otherwise
+     */
+    fun hasWriteSecureSettingsPermission(): Boolean {
+        return try {
+            // First check if we have general Shizuku permission
+            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "No general Shizuku permission")
+                return false
+            }
+            
+            // Then test if we can actually write to secure settings
+            checkShizukuWritePermission()
+            
+        } catch (e: Exception) {
+            Log.w(TAG, "Error checking WRITE_SECURE_SETTINGS permission", e)
+            false
+        }
+    }
+    
+    /**
+     * Request the specific WRITE_SECURE_SETTINGS permission needed for DNS operations
+     * This method ensures we have the right permission for the specific operation
+     */
+    fun requestWriteSecureSettingsPermission() {
+        try {
+            Log.i(TAG, "Requesting WRITE_SECURE_SETTINGS permission for DNS operations")
+            
+            // First ensure we have general Shizuku permission
+            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG, "Requesting general Shizuku permission first")
+                Shizuku.requestPermission(1)
+                return
+            }
+            
+            // If we have general permission, test DNS write access
+            if (checkShizukuWritePermission()) {
+                Log.i(TAG, "Already have WRITE_SECURE_SETTINGS permission")
+                _shizukuState.value = ShizukuState.READY
+                _hasPermission.value = true
+                _lastError.value = null
+            } else {
+                Log.w(TAG, "Have Shizuku permission but not WRITE_SECURE_SETTINGS - user needs to grant in Shizuku app")
+                _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
+                _hasPermission.value = false
+                _lastError.value = "Shizuku permission granted but WRITE_SECURE_SETTINGS still required. Please check Shizuku app settings."
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error requesting WRITE_SECURE_SETTINGS permission", e)
+            _lastError.value = "Failed to request permission: ${e.message}"
+        }
+    }
+    
+    /**
      * Test DNS operations to verify Shizuku permissions are working
      * @return true if DNS operations succeed, false otherwise
      */
@@ -282,9 +337,20 @@ class ShizukuManager(private val context: Context) {
             }
 
             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "Shizuku permission is granted")
-                _shizukuState.value = ShizukuState.READY
-                _hasPermission.value = true
+                Log.d(TAG, "General Shizuku permission is granted, checking DNS-specific permission")
+                
+                // Check if we have the specific permission needed for DNS operations
+                if (hasWriteSecureSettingsPermission()) {
+                    Log.d(TAG, "Shizuku permission is granted and DNS operations are allowed")
+                    _shizukuState.value = ShizukuState.READY
+                    _hasPermission.value = true
+                    _lastError.value = null
+                } else {
+                    Log.w(TAG, "Shizuku permission granted but WRITE_SECURE_SETTINGS not available")
+                    _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
+                    _hasPermission.value = false
+                    _lastError.value = "Shizuku permission granted but WRITE_SECURE_SETTINGS still required. Please check Shizuku app settings."
+                }
             } else {
                 Log.d(TAG, "Shizuku permission is required")
                 _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
@@ -292,7 +358,6 @@ class ShizukuManager(private val context: Context) {
             }
 
             Log.d(TAG, "Shizuku status updated: ${_shizukuState.value}")
-
 
         } catch (e: Exception) {
             Log.e(TAG, "Error checking Shizuku status", e)
@@ -354,12 +419,12 @@ class ShizukuManager(private val context: Context) {
             Log.i(TAG, "Requesting Shizuku permission via API")
 
             if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG, "Requesting general Shizuku permission")
                 Shizuku.requestPermission(1)
             } else {
-                Log.i(TAG, "Already have Shizuku permission")
-                _shizukuState.value = ShizukuState.READY
-                _hasPermission.value = true
-                _lastError.value = null
+                Log.i(TAG, "General Shizuku permission already granted, checking DNS-specific permission")
+                // Use the specific permission request method
+                requestWriteSecureSettingsPermission()
             }
 
         } catch (e: Exception) {
