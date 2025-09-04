@@ -12,7 +12,7 @@ DNSFlip is a modern, minimalist Android application designed to simplify DNS ser
 **Core Value Proposition:**
 - **Simplicity**: Simple two-tap DNS switching with a large, intuitive light switch interface
 - **Performance**: OLED-optimized dark theme for battery efficiency and modern aesthetics
-- **Accessibility**: Comprehensive permission setup with Shizuku integration and ADB fallback
+**Accessibility**: Zero-permission setup using Android's native VpnService.
 - **Reliability**: Real-time status monitoring and automatic settings persistence
 
 **Target Users:**
@@ -22,22 +22,22 @@ DNSFlip is a modern, minimalist Android application designed to simplify DNS ser
 
 **Key Differentiators:**
 - **Light Switch Metaphor**: Unlike traditional settings apps, DNSFlip uses a familiar light switch interface
-- **Smart Permissions**: Seamless integration with Shizuku for automatic permission management
-- **Simple Switching**: No app restarts or device reboots required after initial setup
+- **No Root or ADB Required**: Uses Android's standard VpnService to redirect DNS traffic.
+- **Simple Switching**: No app restarts or device reboots required after initial setup.
 - **Modern UI**: Built with the latest Android development tools for a premium feel
 
 **Technical Architecture:**
 - Kotlin-based with Jetpack Compose for modern UI
-- Shizuku API integration for system-level permissions (implementation in progress)
+- Implements a local `VpnService` to intercept and redirect DNS traffic.
 - Comprehensive testing suite planned with unit, integration, and UI tests
 - Material Design 3 compliance with custom OLED optimization
 
 **Current Implementation Status:**
-- ✅ Core DNS switching functionality implemented
+- ✅ UI and core app structure implemented.
 - ✅ OLED-optimized dark theme with true black backgrounds
 - ✅ Custom light switch component with smooth animations
 - ✅ Data persistence with SharedPreferences
-- 🔄 Shizuku integration in development (build issues being resolved)
+- 🔄 **Pivoting to a VpnService implementation for DNS handling.**
 - 🔄 Testing suite structure established, full implementation in progress
 
 ---
@@ -60,11 +60,10 @@ DNSFlip is a modern, minimalist Android application designed to simplify DNS ser
 - **Custom DNS Support** - Enter any DNS server you prefer
 - **Real-Time Status** - Live updates of current DNS configuration
 
-### 🔐 **Smart Permission Handling**
-- **Shizuku Integration** - Seamless permission management (recommended)
-- **ADB Fallback** - Manual permission setup for all users
-- **Comprehensive Onboarding** - Step-by-step setup guidance
-- **Automatic Detection** - Smart permission status monitoring
+### 🔐 **Simple Permission Handling**
+- **VpnService Integration** - Uses Android's built-in VPN functionality.
+- **No ADB or Root** - Does not require special permissions like `WRITE_SECURE_SETTINGS`.
+- **Standard User Consent** - Works by asking the user for a standard VPN connection permission.
 
 ### 💾 **Data Persistence**
 - **Automatic Saving** - Remembers your preferred DNS server
@@ -75,51 +74,19 @@ DNSFlip is a modern, minimalist Android application designed to simplify DNS ser
 
 ### Prerequisites
 - **Android 9+** (API level 28 or higher)
-- **WRITE_SECURE_SETTINGS** permission (see setup below)
 
 ### Installation
 
 1. **Download** the latest APK from [Releases](https://github.com/your-username/dnsflip/releases)
 2. **Install** the APK on your Android device
-3. **Grant Permission** using one of the methods below
+3. **Open the app and grant VPN permission** when prompted.
 4. **Start Flipping** DNS servers!
 
 ## 🔧 Permission Setup
 
-DNSFlip requires special permission to modify DNS settings. Choose your preferred method:
+DNSFlip uses Android's `VpnService` to change your DNS servers. This method does not require root, `adb`, or any special permissions.
 
-### Method 1: Shizuku (Recommended) 🚀
-
-**Shizuku** provides the smoothest experience with automatic permission management.
-
-1. **Install Shizuku** from [GitHub Releases](https://github.com/RikkaApps/Shizuku/releases)
-2. **Start Shizuku** service (root, wireless debugging, or USB debugging)
-3. **Open DNSFlip** - it will automatically detect Shizuku and request permission
-4. **Grant permission** when prompted
-
-**Benefits:**
-- ✅ User-friendly interface
-- ✅ No command line needed
-- ✅ Persistent permissions
-- ✅ Trusted by the community
-
-### Method 2: ADB (Manual) 🔧
-
-For users who prefer manual control or don't want to use Shizuku.
-
-1. **Enable Developer Options** (Settings → About phone → Tap "Build number" 7 times)
-2. **Enable USB Debugging** (Settings → Developer options → USB debugging)
-3. **Connect device** to computer with ADB
-4. **Run command:**
-   ```bash
-   adb shell pm grant com.mjryan253.dnsflip android.permission.WRITE_SECURE_SETTINGS
-   ```
-
-**For Wireless Debugging (Android 11+):**
-```bash
-adb connect YOUR_DEVICE_IP:5555
-adb shell pm grant com.mjryan253.dnsflip android.permission.WRITE_SECURE_SETTINGS
-```
+When you first activate a custom DNS, the app will ask for permission to create a VPN connection. This is a standard Android dialog. Simply tap "OK" to grant the permission. The app uses this VPN to route your DNS queries to the server of your choice. No other traffic is affected.
 
 ## 📱 Usage
 
@@ -136,9 +103,9 @@ adb shell pm grant com.mjryan253.dnsflip android.permission.WRITE_SECURE_SETTING
 - **OpenDNS**: `208.67.222.222` - Family-friendly filtering options
 
 ### Status Indicators
-- **🟢 Custom DNS Active** - Your custom DNS server is being used
-- **⚪ System DNS Active** - Using your device's default DNS
-- **🔴 Permission Required** - Setup needed before use
+- **🟢 Custom DNS Active** - The DNSFlip VPN is running and directing traffic.
+- **⚪ System DNS Active** - The DNSFlip VPN is turned off.
+- **🔴 Permission Required** - The app needs you to grant VPN permission.
 
 ## 🛠️ Development
 
@@ -191,23 +158,21 @@ For detailed testing information, see [Testing Guide](docs/testing.md).
 ### Project Structure
 ```
 Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/
-├── DNSManager.kt              # Core DNS switching logic
-├── ShizukuManager.kt          # Shizuku integration
+├── VpnManager.kt              # Core DNS switching logic via VpnService
+├── DnsVpnService.kt           # The VpnService implementation
 ├── PreferencesManager.kt      # Data persistence
 ├── MainActivity.kt            # Main UI and app logic
 └── ui/
     ├── components/
-    │   ├── LightSwitch.kt     # Custom switch component
-    │   └── OnboardingDialog.kt # Permission setup UI
+    │   └── LightSwitch.kt     # Custom switch component
     └── theme/
         ├── Color.kt           # OLED-optimized colors
         ├── Theme.kt           # Dark theme configuration
         └── Type.kt            # Typography
 
 Studio/dnsflip/src/test/java/com/mjryan253/dnsflip/
-├── DNSManagerTest.kt          # DNS functionality unit tests
+├── VpnManagerTest.kt          # DNS functionality unit tests
 ├── PreferencesManagerTest.kt  # Data persistence unit tests
-├── ShizukuManagerTest.kt      # Shizuku integration unit tests
 └── ui/theme/ThemeTest.kt      # Theme system unit tests
 
 Studio/dnsflip/src/androidTest/java/com/mjryan253/dnsflip/
@@ -221,7 +186,6 @@ Studio/dnsflip/src/androidTest/java/com/mjryan253/dnsflip/
 - **AndroidX Core KTX** - Android extensions
 - **Jetpack Compose** - Modern UI toolkit
 - **Material Design 3** - Design system
-- **Shizuku API** - System permission access
 - **Kotlin Coroutines** - Asynchronous programming
 
 ### Testing Dependencies
@@ -234,40 +198,31 @@ Studio/dnsflip/src/androidTest/java/com/mjryan253/dnsflip/
 ## 🔒 Security & Privacy
 
 ### Permissions
-DNSFlip only requires:
-- `WRITE_SECURE_SETTINGS` - To modify DNS settings
+DNSFlip requires the `BIND_VPN_SERVICE` permission to function.
 
 **No other permissions are requested or required.**
 
 ### Privacy
 - ✅ **No data collection** - App doesn't collect any personal information
 - ✅ **Local storage only** - All settings stored on your device
-- ✅ **No network requests** - Except for DNS resolution
+- ✅ **Local VPN** - The VPN service runs only on your device to redirect DNS traffic. Your other network traffic is not logged or modified.
 - ✅ **Open source** - Full source code available for review
 
 ### Safety
-- **Shizuku** - Well-established, trusted system service
-- **ADB** - Standard Android development tool
-- **DNS Changes** - Standard system feature, not invasive
+- **VpnService** - Uses the standard Android `VpnService` API, which is secure and managed by the OS.
+- **DNS Changes** - The app only directs DNS queries to the server you choose.
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
 **"Permission not granted"**
-- Ensure you've completed the setup process
-- Try the "Check Permission" button
-- Re-run ADB command if using manual method
+- When you toggle the switch for the first time, Android will ask for permission to create a VPN. You must accept this to use the app.
 
 **"DNS changes not working"**
-- Verify permission is granted
-- Restart your device
-- Check if your device supports private DNS (Android 9+)
-
-**"Shizuku not working"**
-- Ensure Shizuku service is running
-- Try restarting Shizuku
-- Check Shizuku compatibility with your Android version
+- Ensure the switch in the app is "On".
+- Check that you have granted VPN permission. You can revoke and re-grant this from your phone's Settings menu (usually under Network -> VPN).
+- Restart your device.
 
 ### Getting Help
 1. **Check documentation** in the `docs/` folder
@@ -306,7 +261,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Shizuku** - For providing seamless system API access
 - **Jetpack Compose** - For the modern UI toolkit
 - **Material Design** - For the design system
 - **Android Community** - For feedback and contributions
