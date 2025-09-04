@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 
 // OLED Black colors for deep black backgrounds
 val OLEDBlack = Color(0xFF000000)
-val OLEDBlackSecondary = Color(0xFF0A0A0A)
 
 // Accent colors for the light switch
 val SwitchOn = Color(0xFF00E676) // Bright green when DNS is on
@@ -14,7 +13,6 @@ val SwitchTrack = Color(0xFF1E1E1E) // Dark track
 // Text colors
 val TextPrimary = Color(0xFFFFFFFF)
 val TextSecondary = Color(0xFFB3B3B3)
-val TextDisabled = Color(0xFF666666)
 
 // Surface colors
 val SurfaceDark = Color(0xFF121212)

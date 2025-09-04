@@ -32,9 +32,9 @@ fun OnboardingDialog(
     isVisible: Boolean,
     onDismiss: () -> Unit,
     shizukuManager: ShizukuManager,
+    context: Context,
     onPermissionGranted: () -> Unit
 ) {
-    val context = LocalContext.current
     var showAdbInstructions by remember { mutableStateOf(false) }
     var expandedSection by remember { mutableStateOf<String?>(null) }
     
@@ -129,35 +129,24 @@ fun OnboardingDialog(
                             
                             // Shizuku Status
                             when (shizukuState) {
-                                ShizukuState.NOT_INSTALLED -> {
+                                ShizukuState.NOT_RUNNING -> {
                                     Button(
-                                        onClick = { shizukuManager.openShizukuDownload() },
+                                        onClick = { /* TODO: Implement Shizuku service start once dependencies resolved */ },
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
                                     ) {
-                                        Icon(Icons.Default.Download, contentDescription = null)
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Install Shizuku")
-                                    }
-                                }
-                                ShizukuState.NOT_RUNNING -> {
-                                    Button(
-                                        onClick = { shizukuManager.openShizukuApp() },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = ButtonDefaults.buttonColors(containerColor = StatusWarning)
-                                    ) {
                                         Icon(Icons.Default.PlayArrow, contentDescription = null)
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Start Shizuku")
+                                        Text("Start Shizuku Service")
                                     }
                                 }
                                 ShizukuState.PERMISSION_REQUIRED -> {
                                     Button(
-                                        onClick = { shizukuManager.requestPermission() },
+                                        onClick = { shizukuManager.requestPermission(context) },
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
                                     ) {
-                                        Icon(Icons.Default.Security, contentDescription = null)
+                                        Icon(Icons.Default.Lock, contentDescription = null)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text("Grant Permission")
                                     }
@@ -219,7 +208,7 @@ fun OnboardingDialog(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text("Learn more about Shizuku")
-                                    Icon(Icons.Default.ExpandMore, contentDescription = null)
+                                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
                                 }
                             }
                         }
@@ -253,7 +242,7 @@ fun OnboardingDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(containerColor = SwitchOff)
                             ) {
-                                Icon(Icons.Default.Terminal, contentDescription = null)
+                                Icon(Icons.Default.Settings, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("Show ADB Instructions")
                             }
@@ -292,7 +281,7 @@ fun OnboardingDialog(
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = StatusSuccess)
                                     ) {
-                                        Icon(Icons.Default.ContentCopy, contentDescription = null)
+                                        Icon(Icons.Default.Check, contentDescription = null)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text("Copy Command")
                                     }
@@ -316,7 +305,7 @@ fun OnboardingDialog(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    Icons.Default.Help,
+                                    Icons.Default.Info,
                                     contentDescription = null,
                                     tint = StatusError
                                 )
@@ -340,7 +329,7 @@ fun OnboardingDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(containerColor = StatusError)
                             ) {
-                                Icon(Icons.Default.OpenInNew, contentDescription = null)
+                                Icon(Icons.Default.ArrowForward, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("View Documentation")
                             }
@@ -497,7 +486,7 @@ fun AdbInstructionsDialog(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = StatusSuccess)
                         ) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = null)
+                            Icon(Icons.Default.Check, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Copy Command")
                         }

@@ -13,3 +13,32 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Testing files and reports
+/test-results/
+/coverage/
+*.test
+*.spec
+junit.xml
+test-report.xml
+
+# Generated test files
+**/build/test-results/
+**/build/reports/tests/
+**/build/outputs/androidTest-results/
+
+# Temporary test files
+**/tmp/
+**/temp/
+
+# Test coverage reports
+**/coverage/
+**/jacoco/
+*.exec
+*.ec
+
+# Android specific test artifacts
+**/androidTest-results/
+**/connected_android_test_additional_output/
+**/connected_android_test_additional_output_debug/
+**/connected_android_test_additional_output_release/

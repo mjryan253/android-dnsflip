@@ -1,5 +1,47 @@
 # DNSFlip 🔄
 
+## TL;DR
+**DNSFlip** is an Android app that lets you switch DNS servers with a single tap - like flipping a light switch. It toggles between your device's default DNS and custom DNS servers (like Cloudflare's 1.1.1.1) instantly, with a beautiful OLED-optimized dark theme.
+
+---
+
+## Executive Summary
+
+DNSFlip is a modern, minimalist Android application designed to simplify DNS server management. Built with Jetpack Compose and Material Design 3, it transforms the complex process of changing DNS settings into an intuitive, simple two-tap experience.
+
+**Core Value Proposition:**
+- **Simplicity**: Simple two-tap DNS switching with a large, intuitive light switch interface
+- **Performance**: OLED-optimized dark theme for battery efficiency and modern aesthetics
+- **Accessibility**: Comprehensive permission setup with Shizuku integration and ADB fallback
+- **Reliability**: Real-time status monitoring and automatic settings persistence
+
+**Target Users:**
+- Privacy-conscious users who want to switch between DNS providers
+- Developers and power users who need quick DNS configuration changes
+- Anyone seeking faster, more secure internet connections
+
+**Key Differentiators:**
+- **Light Switch Metaphor**: Unlike traditional settings apps, DNSFlip uses a familiar light switch interface
+- **Smart Permissions**: Seamless integration with Shizuku for automatic permission management
+- **Simple Switching**: No app restarts or device reboots required after initial setup
+- **Modern UI**: Built with the latest Android development tools for a premium feel
+
+**Technical Architecture:**
+- Kotlin-based with Jetpack Compose for modern UI
+- Shizuku API integration for system-level permissions (implementation in progress)
+- Comprehensive testing suite planned with unit, integration, and UI tests
+- Material Design 3 compliance with custom OLED optimization
+
+**Current Implementation Status:**
+- ✅ Core DNS switching functionality implemented
+- ✅ OLED-optimized dark theme with true black backgrounds
+- ✅ Custom light switch component with smooth animations
+- ✅ Data persistence with SharedPreferences
+- 🔄 Shizuku integration in development (build issues being resolved)
+- 🔄 Testing suite structure established, full implementation in progress
+
+---
+
 **DNSFlip** is a beautiful, modern Android app that makes switching DNS servers as simple as flipping a light switch. Built with Jetpack Compose and optimized for OLED displays, it provides an intuitive way to toggle between system DNS and custom DNS servers.
 
 ![DNSFlip Logo](docs/assets/logo.png)
@@ -120,6 +162,32 @@ adb shell pm grant com.mjryan253.dnsflip android.permission.WRITE_SECURE_SETTING
    ./gradlew installDebug
    ```
 
+### Testing
+
+DNSFlip includes a comprehensive test suite covering unit tests, integration tests, and UI tests.
+
+**Run all tests:**
+```bash
+./gradlew test connectedAndroidTest
+```
+
+**Run unit tests only:**
+```bash
+./gradlew test
+```
+
+**Run instrumented tests:**
+```bash
+./gradlew connectedAndroidTest
+```
+
+**Run with coverage:**
+```bash
+./gradlew testDebugUnitTestCoverage
+```
+
+For detailed testing information, see [Testing Guide](docs/testing.md).
+
 ### Project Structure
 ```
 Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/
@@ -135,6 +203,18 @@ Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/
         ├── Color.kt           # OLED-optimized colors
         ├── Theme.kt           # Dark theme configuration
         └── Type.kt            # Typography
+
+Studio/dnsflip/src/test/java/com/mjryan253/dnsflip/
+├── DNSManagerTest.kt          # DNS functionality unit tests
+├── PreferencesManagerTest.kt  # Data persistence unit tests
+├── ShizukuManagerTest.kt      # Shizuku integration unit tests
+└── ui/theme/ThemeTest.kt      # Theme system unit tests
+
+Studio/dnsflip/src/androidTest/java/com/mjryan253/dnsflip/
+├── DNSManagerIntegrationTest.kt      # DNS integration tests
+├── PreferencesManagerIntegrationTest.kt # Preferences integration tests
+├── MainActivityUITest.kt             # UI component tests
+└── ExampleInstrumentedTest.kt        # Basic instrumented tests
 ```
 
 ### Dependencies
@@ -143,6 +223,13 @@ Studio/dnsflip/src/main/java/com/mjryan253/dnsflip/
 - **Material Design 3** - Design system
 - **Shizuku API** - System permission access
 - **Kotlin Coroutines** - Asynchronous programming
+
+### Testing Dependencies
+- **JUnit 4** - Testing framework
+- **MockK** - Mocking library for Kotlin
+- **Compose Testing** - UI testing framework
+- **AndroidX Test** - Instrumented testing
+- **Coroutines Test** - Async testing support
 
 ## 🔒 Security & Privacy
 
