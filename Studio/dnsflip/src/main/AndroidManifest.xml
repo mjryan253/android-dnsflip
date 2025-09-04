@@ -2,8 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permission required to modify DNS settings -->
-    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <!-- Permission required to run a VPN service -->
+    <uses-permission android:name="android.permission.BIND_VPN_SERVICE"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:allowBackup="true"
@@ -26,15 +27,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Shizuku Provider -->
-        <provider
-            android:name="rikka.shizuku.ShizukuProvider"
-            android:authorities="${applicationId}.shizuku"
-            android:multiprocess="false"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"
-            tools:ignore="ProtectedPermissions" />
+        <!-- DNS VpnService -->
+        <service
+            android:name=".DnsVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
 
     </application>
 
