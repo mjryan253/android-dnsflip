@@ -21,88 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mjryan253.dnsflip.ui.theme.*
 
-@Composable
-fun LightSwitch(
-    isOn: Boolean,
-    onToggle: () -> Unit,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier
-) {
-    val switchWidth = 200.dp
-    val switchHeight = 100.dp
-    val thumbSize = 80.dp
-    val padding = 10.dp
-    
-    val thumbOffset by animateFloatAsState(
-        targetValue = if (isOn) (switchWidth - thumbSize - padding).value else padding.value,
-        animationSpec = tween(durationMillis = 300),
-        label = "thumb_animation"
-    )
-    
-    val trackColor by animateFloatAsState(
-        targetValue = if (isOn) 1f else 0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "track_color_animation"
-    )
-    
-    val thumbColor = if (isOn) SwitchOn else SwitchOff
-    val trackColorAnimated = Color(
-        red = SwitchTrack.red + (SwitchOn.red - SwitchTrack.red) * trackColor,
-        green = SwitchTrack.green + (SwitchOn.green - SwitchTrack.green) * trackColor,
-        blue = SwitchTrack.blue + (SwitchOn.blue - SwitchTrack.blue) * trackColor,
-        alpha = SwitchTrack.alpha + (SwitchOn.alpha - SwitchTrack.alpha) * trackColor
-    )
-    
-    Box(
-        modifier = modifier
-            .size(switchWidth, switchHeight)
-            .clip(RoundedCornerShape(50.dp))
-            .background(trackColorAnimated)
-            .border(
-                width = 2.dp,
-                color = if (isOn) SwitchOn else SwitchTrack,
-                shape = RoundedCornerShape(50.dp)
-            )
-            .clickable(enabled = enabled) { onToggle() },
-        contentAlignment = Alignment.CenterStart
-    ) {
-        // Thumb
-        Box(
-            modifier = Modifier
-                .size(thumbSize)
-                .offset(x = thumbOffset.dp)
-                .clip(CircleShape)
-                .background(thumbColor)
-                .shadow(
-                    elevation = 8.dp,
-                    shape = CircleShape,
-                    ambientColor = thumbColor.copy(alpha = 0.3f),
-                    spotColor = thumbColor.copy(alpha = 0.3f)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            // Inner glow effect
-            Box(
-                modifier = Modifier
-                    .size((thumbSize - 16.dp))
-                    .clip(CircleShape)
-                    .background(thumbColor.copy(alpha = 0.2f))
-            )
-        }
-        
-        // Status text
-        Text(
-            text = if (isOn) "ON" else "OFF",
-            color = if (isOn) TextPrimary else TextSecondary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-    }
-}
 
 @Composable
 fun LargeLightSwitch(
@@ -119,22 +37,11 @@ fun LargeLightSwitch(
     val thumbOffset by animateFloatAsState(
         targetValue = if (isOn) (switchWidth - thumbSize - padding).value else padding.value,
         animationSpec = tween(durationMillis = 400),
-        label = "large_thumb_animation"
+        label = "thumb_animation"
     )
     
-    val trackColor by animateFloatAsState(
-        targetValue = if (isOn) 1f else 0f,
-        animationSpec = tween(durationMillis = 400),
-        label = "large_track_color_animation"
-    )
-    
+    val trackColor = if (isOn) SwitchOn else SwitchTrack
     val thumbColor = if (isOn) SwitchOn else SwitchOff
-    val trackColorAnimated = Color(
-        red = SwitchTrack.red + (SwitchOn.red - SwitchTrack.red) * trackColor,
-        green = SwitchTrack.green + (SwitchOn.green - SwitchTrack.green) * trackColor,
-        blue = SwitchTrack.blue + (SwitchOn.blue - SwitchTrack.blue) * trackColor,
-        alpha = SwitchTrack.alpha + (SwitchOn.alpha - SwitchTrack.alpha) * trackColor
-    )
     
     Column(
         modifier = modifier,
@@ -146,10 +53,10 @@ fun LargeLightSwitch(
             modifier = Modifier
                 .size(switchWidth, switchHeight)
                 .clip(RoundedCornerShape(70.dp))
-                .background(trackColorAnimated)
+                .background(trackColor)
                 .border(
                     width = 3.dp,
-                    color = if (isOn) SwitchOn else SwitchTrack,
+                    color = trackColor,
                     shape = RoundedCornerShape(70.dp)
                 )
                 .clickable(enabled = enabled) { onToggle() },
@@ -170,15 +77,7 @@ fun LargeLightSwitch(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                // Inner glow effect
-                Box(
-                    modifier = Modifier
-                        .size((thumbSize - 20.dp))
-                        .clip(CircleShape)
-                        .background(thumbColor.copy(alpha = 0.3f))
-                )
-                
-                // Icon or text inside thumb
+                // Icon inside thumb
                 Text(
                     text = if (isOn) "✓" else "○",
                     color = if (isOn) OLEDBlack else TextSecondary,

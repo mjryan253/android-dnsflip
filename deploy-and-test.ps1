@@ -1,5 +1,5 @@
 # DNSFlip Rapid Deployment & Testing Script
-# PowerShell version for better compatibility and features
+# PowerShell version for Windows
 
 param(
     [switch]$SkipClean,
@@ -21,12 +21,13 @@ if (-not (Test-Path "Studio\gradlew.bat")) {
     Write-Host "Current directory: $PWD" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Please navigate to the android-dnsflip directory and run this script again." -ForegroundColor Yellow
-    Read-Host "Press Enter to continue"
     exit 1
 }
 
 # Navigate to Studio directory
 Set-Location Studio
+Write-Host "Changed to Studio directory: $PWD" -ForegroundColor Green
+Write-Host ""
 
 Write-Host "[1/6] Checking ADB connection..." -ForegroundColor Green
 try {
@@ -34,18 +35,20 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "ADB not found"
     }
+    Write-Host "ADB found and working" -ForegroundColor Green
 } catch {
     Write-Host "ERROR: ADB not found or not working" -ForegroundColor Red
     Write-Host "Please ensure Android SDK is installed and ADB is in your PATH" -ForegroundColor Yellow
-    Read-Host "Press Enter to continue"
     exit 1
 }
 
 # Get list of connected devices
 if ($DeviceId -eq "") {
+    Write-Host "Checking for connected devices..." -ForegroundColor Green
     $devices = adb devices | Where-Object { $_ -match "device$" }
     if ($devices) {
         $DeviceId = ($devices[0] -split "\s+")[0]
+        Write-Host "Found device: $DeviceId" -ForegroundColor Green
     }
 }
 
@@ -62,50 +65,81 @@ if ($DeviceId -eq "") {
     emulator -list-avds
     Write-Host ""
     Write-Host "To start an emulator, run: emulator -avd [AVD_NAME]" -ForegroundColor Yellow
-    Read-Host "Press Enter to continue"
     exit 1
 }
 
-Write-Host "Found device: $DeviceId" -ForegroundColor Green
+Write-Host "Using device: $DeviceId" -ForegroundColor Green
 Write-Host ""
 
 if (-not $SkipClean) {
     Write-Host "[2/6] Cleaning previous build..." -ForegroundColor Green
-    & .\gradlew clean
+    Write-Host "Running: .\gradlew.bat clean" -ForegroundColor Gray
+    & .\gradlew.bat clean
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Clean failed" -ForegroundColor Red
-        Read-Host "Press Enter to continue"
+        Write-Host "ERROR: Clean failed with exit code: $LASTEXITCODE" -ForegroundColor Red
         exit 1
     }
+    Write-Host "Clean completed successfully" -ForegroundColor Green
+} else {
+    Write-Host "[2/6] Skipping clean (SkipClean flag set)" -ForegroundColor Yellow
 }
 
 if (-not $SkipBuild) {
     Write-Host "[3/6] Building debug APK..." -ForegroundColor Green
-    & .\gradlew assembleDebug
+    Write-Host "Running: .\gradlew.bat assembleDebug" -ForegroundColor Gray
+    & .\gradlew.bat assembleDebug
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Build failed" -ForegroundColor Red
-        Read-Host "Press Enter to continue"
+        Write-Host "ERROR: Build failed with exit code: $LASTEXITCODE" -ForegroundColor Red
         exit 1
     }
+    Write-Host "Build completed successfully" -ForegroundColor Green
+    
+    # Verify APK was created
+    $apkPath = "dnsflip\build\outputs\apk\debug\dnsflip-debug.apk"
+    if (Test-Path $apkPath) {
+        $apkSize = (Get-Item $apkPath).Length / 1MB
+        Write-Host "APK created: $apkPath ($([math]::Round($apkSize, 2)) MB)" -ForegroundColor Green
+    } else {
+        Write-Host "WARNING: APK not found at expected location: $apkPath" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "[3/6] Skipping build (SkipBuild flag set)" -ForegroundColor Yellow
 }
 
 if (-not $SkipInstall) {
     Write-Host "[4/6] Installing APK on device..." -ForegroundColor Green
-    & .\gradlew installDebug
+    Write-Host "Running: .\gradlew.bat installDebug" -ForegroundColor Gray
+    & .\gradlew.bat installDebug
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Installation failed" -ForegroundColor Red
-        Read-Host "Press Enter to continue"
+        Write-Host "ERROR: Installation failed with exit code: $LASTEXITCODE" -ForegroundColor Red
         exit 1
     }
+    Write-Host "Installation completed successfully" -ForegroundColor Green
+    
+    # Verify app is installed
+    Write-Host "Verifying app installation..." -ForegroundColor Green
+    $installedApp = adb shell pm list packages | Where-Object { $_ -match "com.mjryan253.dnsflip" }
+    if ($installedApp) {
+        Write-Host "App verified as installed: $installedApp" -ForegroundColor Green
+    } else {
+        Write-Host "WARNING: Could not verify app installation" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "[4/6] Skipping installation (SkipInstall flag set)" -ForegroundColor Yellow
 }
 
 if (-not $SkipStart) {
     Write-Host "[5/6] Starting DNSFlip app..." -ForegroundColor Green
-    adb shell am start -n com.mjryan253.dnsflip/.MainActivity
+    Write-Host "Running: adb shell am start -n com.mjryan253.dnsflip.debug/.MainActivity" -ForegroundColor Gray
+    adb shell am start -n com.mjryan253.dnsflip.debug/.MainActivity
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "WARNING: Could not start app automatically" -ForegroundColor Yellow
+        Write-Host "WARNING: Could not start app automatically (exit code: $LASTEXITCODE)" -ForegroundColor Yellow
         Write-Host "Please start the app manually from the device" -ForegroundColor Yellow
+    } else {
+        Write-Host "App started successfully" -ForegroundColor Green
     }
+} else {
+    Write-Host "[5/6] Skipping app start (SkipStart flag set)" -ForegroundColor Yellow
 }
 
 Write-Host "[6/6] Deployment complete!" -ForegroundColor Green
@@ -137,5 +171,4 @@ if (-not $NoLogcat) {
 }
 
 Write-Host ""
-Write-Host "Deployment script completed." -ForegroundColor Green
-Read-Host "Press Enter to continue"
+Write-Host "Deployment script completed successfully!" -ForegroundColor Green

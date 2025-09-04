@@ -1,90 +1,91 @@
 # Next Steps - DNSFlip Project
 
-## Current Status: Phase 19 Complete - Enhanced Error Handling, Specific Permission Issue Resolved, Deployment Automation Implemented
+## Current Status: Phase 21 Complete - Code Cleanup and Redundancy Removal Complete
 
-The DNSFlip project has successfully completed **Phase 19: Enhanced Error Handling and Troubleshooting, Specific Permission Issue Resolution, Deployment Automation**. The app now provides comprehensive error reporting, has resolved the specific permission issue, and includes automated deployment scripts for rapid development workflow.
+The DNSFlip project has completed **Phase 21: Code Cleanup and Redundancy Removal Complete**. We have successfully streamlined the codebase by removing redundancies and consolidating functionality while maintaining all core features. The code is now cleaner, more maintainable, and easier to understand.
 
 ## Immediate Next Steps Required
 
-### 1. User Permission Configuration in Shizuku App 🔐
+### 1. Alternative Approach Implementation 🔧
 
-**Current Status**: Specific permission issue identified and resolved in code, but user action required
+**Current Status**: Code cleanup complete, but Shizuku limitation still exists - cannot grant required permissions
 
-**What Users Must Do**:
-1. **Open Shizuku app** on their device
-2. **Go to "Apps" section**
-3. **Find "DNSFlip"** in the list
-4. **Tap on DNSFlip** to see its permissions
-5. **Look for `WRITE_SECURE_SETTINGS`** permission
-6. **Enable/check the box** for this specific permission
-7. **Restart DNSFlip** after granting the permission
+**Previous Discovery**:
+- **Shizuku Limitation**: Shizuku cannot grant `WRITE_SECURE_SETTINGS` permission
+- **System Restriction**: This is a fundamental Android system limitation
+- **Evidence**: Even with manual Shizuku access, DNS operations still fail with SecurityException
+- **Impact**: Current approach cannot work and requires complete revision
 
-**Why This Is Needed**:
-- General Shizuku permission is granted ✅
-- Specific `WRITE_SECURE_SETTINGS` permission is missing ❌
-- DNS operations require this exact permission to work
-- The app now properly detects and reports this specific issue
+**Alternative Approaches to Research**:
+1. **ADB Method**: Direct ADB permission granting
+2. **Root Access**: Root-based permission management
+3. **System-Level Alternatives**: VPN, proxy, or other DNS methods
+4. **Manual Configuration**: User-guided permission setup
 
-### 2. Test Enhanced Permission Flow with Proper Permissions 🧪
+### 2. ADB Method Implementation 📱
 
-**After granting WRITE_SECURE_SETTINGS permission**:
+**Research and implement ADB-based permission granting**:
 
-1. **Use deployment script** to quickly reinstall:
-   ```powershell
-   .\deploy-and-test.ps1 -SkipClean -SkipBuild
+1. **ADB Permission Granting**:
+   ```bash
+   adb shell pm grant com.mjryan253.dnsflip android.permission.WRITE_SECURE_SETTINGS
    ```
 
-2. **Check the troubleshooting button** - it should now show:
-   - ✅ DNS Permission: Granted
-   - ✅ Write Permission Test: Success: true
+2. **User Guide Creation**:
+   - Step-by-step ADB setup instructions
+   - Device-specific configuration guides
+   - Troubleshooting for common ADB issues
 
-3. **Test DNS switching** - the light switch should now work properly
+3. **App Integration**:
+   - Detect ADB-granted permissions
+   - Provide clear user guidance for ADB setup
+   - Fallback to manual configuration when needed
 
-### 3. Test Enhanced Error Handling and Troubleshooting 🚨
+### 3. Root Access Alternative 🔓
 
-**Test the new error reporting system**:
+**Research root-based permission management**:
 
-1. **Error Details Card**: Verify it appears when DNS operations fail
-2. **Troubleshooting Button**: Test the comprehensive diagnostic information
-3. **Permission Guidance**: Verify clear instructions for resolving permission issues
-4. **Error Codes**: Test various error scenarios to ensure proper error reporting
+1. **Root Permission Detection**:
+   - Check for root access availability
+   - Implement root-based permission granting
+   - Provide root setup guidance
 
-### 4. Test Deployment Automation Scripts ⚡
+2. **System-Level Access**:
+   - Direct system settings modification
+   - Bypass permission restrictions with root
+   - Enhanced security considerations
 
-**Verify the new deployment workflow**:
+### 4. Alternative DNS Methods 🌐
 
-1. **PowerShell Script**: Test `.\deploy-and-test.ps1` with various options
-2. **Batch Script**: Test `deploy-and-test.bat` for Windows compatibility
-3. **Shell Script**: Test `./deploy-and-test.sh` for Unix/Linux/macOS
-4. **Logcat Filtering**: Verify automatic filtered logcat monitoring works
+**Explore non-permission-based DNS configuration**:
 
-**Script Options to Test**:
-```powershell
-# Full deployment cycle
-.\deploy-and-test.ps1
+1. **VPN-Based DNS**:
+   - Create local VPN for DNS routing
+   - Bypass system permission requirements
+   - User-friendly VPN configuration
 
-# Quick reinstall (skip build)
-.\deploy-and-test.ps1 -SkipClean -SkipBuild
-
-# Debug mode only
-.\deploy-and-test.ps1 -NoLogcat
-```
+2. **Proxy-Based DNS**:
+   - HTTP/HTTPS proxy for DNS resolution
+   - System proxy configuration
+   - Alternative to direct DNS settings
 
 ## Technical Implementation Status
 
-### ✅ What's Complete
-- **Enhanced Error Handling**: Comprehensive error reporting with error codes and technical details
-- **Specific Permission Management**: Proper WRITE_SECURE_SETTINGS permission handling implemented
-- **Troubleshooting Interface**: Built-in troubleshooting with system information and diagnostic data
-- **Deployment Automation**: Cross-platform scripts for rapid development workflow
-- **Permission Issue Resolution**: Code updated to properly detect and handle specific permission requirements
-- **User Guidance**: Clear instructions for resolving permission issues in Shizuku app
+### ✅ What's Complete (Post-Cleanup)
+- **Code Cleanup and Optimization**: Streamlined codebase with reduced complexity and improved maintainability
+- **UI Component Consolidation**: Single, optimized light switch component with clean styling
+- **Unified State Management**: ShizukuManager as single source of truth for permission state
+- **Simplified Error Handling**: Maintained comprehensive error reporting with cleaner implementation
+- **Theme System Cleanup**: Removed unused colors while preserving OLED-optimized dark theme
+- **Test File Cleanup**: Removed generic example tests, keeping only app-specific tests
+- **Code Quality Improvement**: Eliminated redundancies while preserving all functionality
 
 ### 🚀 What's Now Active
-- **Enhanced Error Reporting**: Detailed error messages with error codes and troubleshooting guidance
-- **Specific Permission Checking**: Real-time verification of DNS write permissions
-- **Automated Deployment**: Scripts for rapid build, install, and testing workflow
-- **Comprehensive Troubleshooting**: Built-in diagnostic tools and user guidance
+- **Clean, Maintainable Codebase**: Simplified implementation with reduced complexity
+- **Unified Permission Management**: Single source of truth for permission state
+- **Consolidated UI Components**: Single light switch component with optimized styling
+- **Streamlined Error Handling**: Maintained functionality with cleaner implementation
+- **Alternative Approach Research**: Investigation of ADB, root, and alternative DNS methods
 
 ## Files Ready for Testing
 
@@ -115,38 +116,39 @@ The DNSFlip project has successfully completed **Phase 19: Enhanced Error Handli
 - **Shell Script**: `deploy-and-test.sh` for Unix/Linux/macOS
 - **Documentation**: `DEPLOYMENT_SCRIPTS_README.md` with comprehensive usage guide
 
-## Success Criteria for Phase 20
+## Success Criteria for Phase 22
 
-### Phase 20: Permission Resolution and Final Testing
-**Goal**: Verify that DNS operations work correctly after proper permission configuration and complete final testing
+### Phase 22: Alternative Approach Implementation
+**Goal**: Implement and test alternative approaches for DNS configuration that bypass Shizuku limitations
 
 **Success Metrics**:
-- [ ] Users can successfully grant WRITE_SECURE_SETTINGS permission in Shizuku app
-- [ ] DNS switching operations work correctly with proper permissions
-- [ ] Enhanced error handling provides clear guidance for all error scenarios
-- [ ] Deployment automation scripts work correctly on all target platforms
-- [ ] App provides professional-grade error reporting and troubleshooting
-- [ ] All permission-related issues resolved and documented
-- [ ] Ready for production release with comprehensive error handling
+- [ ] ADB-based permission granting method implemented and tested
+- [ ] Root access alternative researched and documented
+- [ ] Alternative DNS methods (VPN, proxy) explored and evaluated
+- [ ] User guides created for all alternative approaches
+- [ ] App architecture revised to work with alternative methods
+- [ ] Comprehensive testing of all alternative approaches
+- [ ] Production-ready solution with working DNS functionality
 
 ## Testing Timeline Estimate
 
-- **Permission Configuration**: 30 minutes (user action in Shizuku app)
-- **Permission Testing**: 1 hour (verify DNS operations work)
-- **Error Handling Testing**: 2 hours (test various error scenarios)
-- **Deployment Script Testing**: 1 hour (verify automation workflow)
-- **Final Integration Testing**: 2 hours (comprehensive functionality verification)
+- **ADB Method Research**: 2 hours (investigate and document ADB approach)
+- **Root Access Research**: 2 hours (explore root-based alternatives)
+- **Alternative DNS Methods**: 4 hours (VPN, proxy, and other approaches)
+- **User Guide Creation**: 3 hours (comprehensive documentation)
+- **App Architecture Revision**: 4 hours (implement alternative approaches)
+- **Testing and Validation**: 3 hours (verify all methods work)
 
-**Total Estimated Time**: 6.5 hours to complete Phase 20
+**Total Estimated Time**: 18 hours to complete Phase 22
 
 ## Conclusion
 
-The DNSFlip project has successfully achieved a major milestone with the completion of Phase 19. The app now provides professional-grade error handling, has resolved the specific permission issue, and includes automated deployment tools for efficient development workflow.
+The DNSFlip project has completed Phase 21 with successful code cleanup and redundancy removal. The codebase is now cleaner, more maintainable, and easier to understand while preserving all core functionality. However, the fundamental Shizuku limitation still exists and requires alternative approaches.
 
-**Current Status**: ✅ **Enhanced Error Handling Complete** - Ready for permission testing and final verification
-**Next Priority**: 🔐 **User Permission Configuration** - Grant WRITE_SECURE_SETTINGS in Shizuku app
-**Following Priority**: 🧪 **Final Testing** - Verify all functionality works with proper permissions
+**Current Status**: ✅ **Code Cleanup Complete** - Cleaner, more maintainable codebase
+**Next Priority**: 🔧 **Alternative Approach Implementation** - ADB, root, or alternative DNS methods
+**Following Priority**: 📚 **User Guide Creation** - Comprehensive documentation for all methods
 
-The implementation is now production-ready with comprehensive error handling, specific permission management, and automated deployment capabilities. The specific permission issue has been identified and resolved in the code, requiring only user action in the Shizuku app to complete the setup.
+The implementation now has a streamlined codebase with comprehensive error handling and automated deployment capabilities, but the core DNS functionality still cannot work with the current Shizuku approach. Alternative methods must be researched and implemented.
 
-**Next Action**: Guide users to enable WRITE_SECURE_SETTINGS permission specifically in their Shizuku app, then test the complete DNS functionality to verify everything works correctly.
+**Next Action**: Research and implement alternative approaches for DNS configuration that bypass the Shizuku limitation, including ADB-based permission granting, root access alternatives, and non-permission-based DNS methods.

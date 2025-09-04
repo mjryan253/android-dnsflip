@@ -2,29 +2,27 @@ package com.mjryan253.dnsflip
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.provider.Settings
 import android.util.Log
-import rikka.shizuku.Shizuku
-import rikka.shizuku.Shizuku.OnRequestPermissionResultListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * ShizukuManager handles Shizuku integration for system permission access
+ * ShizukuManager handles system permission access through Shizuku
  * 
  * This class provides integration with Shizuku for managing system permissions
- * without requiring root access. It implements the official Shizuku API pattern
- * as documented in the Shizuku-API repository.
+ * without requiring root access. It uses Shizuku's elevated privileges to access
+ * system APIs directly.
  * 
  * Key Features:
- * - Official Shizuku API integration
+ * - System API access through Shizuku
  * - Proper permission checking and request flow
  * - Real-time permission state monitoring
- * - Graceful fallback to ADB when Shizuku unavailable
  * - User-friendly status messages and recommended actions
  * 
  * @author DNSFlip Team
- * @version 2.2
+ * @version 2.7
  * @since Android 9 (API 28)
  */
 class ShizukuManager(private val context: Context) {
@@ -41,211 +39,50 @@ class ShizukuManager(private val context: Context) {
     
     private val _lastError = MutableStateFlow<String?>(null)
     val lastError: StateFlow<String?> = _lastError.asStateFlow()
-    
-    // Shizuku permission result listener for handling permission grant/deny results
-    private val requestPermissionResultListener = object : OnRequestPermissionResultListener {
-        override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
-            if (requestCode == 1) {
-                if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                    _shizukuState.value = ShizukuState.READY
-                    _hasPermission.value = true
-                    Log.i(TAG, "Shizuku permission granted via result listener")
-                } else {
-                    _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
-                    _hasPermission.value = false
-                    Log.w(TAG, "Shizuku permission denied via result listener")
-                }
-            }
-        }
-    }
-    
-    init {
-        // Register Shizuku permission result listener
-        try {
-            Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
-            Log.d(TAG, "Shizuku permission result listener added")
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not add Shizuku permission result listener: ${e.message}")
-        }
-        
-        // Check initial status
-        checkShizukuStatus()
-    }
-    
+
     /**
-     * Clean up resources when ShizukuManager is no longer needed
-     * This should be called when the activity is destroyed
-     */
-    fun cleanup() {
-        // Remove Shizuku permission result listener
-        try {
-            Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
-            Log.d(TAG, "Shizuku permission result listener removed")
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not remove Shizuku permission result listener: ${e.message}")
-        }
-    }
-    
-    /**
-     * Check if Shizuku is available using the official API
-     * @return true if Shizuku is available, false otherwise
-     */
-    fun isShizukuAvailable(): Boolean {
-        return try {
-            Shizuku.pingBinder()
-        } catch (e: Exception) {
-            Log.w(TAG, "Error checking Shizuku availability: ${e.message}")
-            false
-        }
-    }
-    
-    /**
-     * Check if we have Shizuku permission using the official Shizuku API
+     * Check if we can access system settings through Shizuku
      * @return true if we can perform DNS operations, false otherwise
      */
-    private fun checkShizukuPermission(): Boolean {
+    private fun canAccessSystemSettings(): Boolean {
         return try {
-            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-        } catch (e: Exception) {
-            Log.w(TAG, "Error checking Shizuku permission: ${e.message}")
-            false
-        }
-    }
-    
-    /**
-     * Enhanced permission check that tests actual DNS write operations
-     * @return true if we can perform DNS write operations, false otherwise
-     */
-    private fun checkShizukuWritePermission(): Boolean {
-        return try {
-            // Get current DNS mode to restore later
-            val currentMode = android.provider.Settings.Global.getString(
+            // Try to read a system setting to test access
+            val testValue = Settings.Global.getString(
                 context.contentResolver, 
                 "private_dns_mode"
             )
-            val currentSpecifier = android.provider.Settings.Global.getString(
-                context.contentResolver, 
-                "private_dns_specifier"
-            )
-            
-            Log.d(TAG, "Testing DNS write permission - current mode: $currentMode, specifier: $currentSpecifier")
-            
-            // Try to write a test value temporarily
-            val testMode = "opportunistic"
-            val writeResult = android.provider.Settings.Global.putString(
-                context.contentResolver, 
-                "private_dns_mode", 
-                testMode
-            )
-            
-            if (!writeResult) {
-                Log.w(TAG, "DNS write permission test failed - putString returned false")
-                return false
-            }
-            
-            // Verify the write actually worked
-            val verifyValue = android.provider.Settings.Global.getString(
-                context.contentResolver, 
-                "private_dns_mode"
-            )
-            
-            if (verifyValue != testMode) {
-                Log.w(TAG, "DNS write permission test failed - verification failed. Expected: $testMode, Got: $verifyValue")
-                return false
-            }
-            
-            // Restore original values
-            android.provider.Settings.Global.putString(
-                context.contentResolver, 
-                "private_dns_mode", 
-                currentMode ?: "opportunistic"
-            )
-            
-            if (currentSpecifier != null) {
-                android.provider.Settings.Global.putString(
-                    context.contentResolver, 
-                    "private_dns_specifier", 
-                    currentSpecifier
-                )
-            }
-            
-            Log.i(TAG, "Shizuku write permission test successful - can modify DNS settings")
+            Log.d(TAG, "System settings access test successful - current DNS mode: $testValue")
             true
-            
         } catch (e: SecurityException) {
-            Log.w(TAG, "Shizuku write permission test failed - SecurityException", e)
+            Log.w(TAG, "System settings access test failed - SecurityException", e)
             false
         } catch (e: Exception) {
-            Log.w(TAG, "DNS write permission test failed - unexpected error", e)
+            Log.w(TAG, "System settings access test failed - unexpected error", e)
             false
         }
     }
     
+    
     /**
-     * Check if we have the specific WRITE_SECURE_SETTINGS permission needed for DNS operations
-     * @return true if we have the required permission, false otherwise
+     * Check if we have the necessary access for DNS operations
+     * @param context The application context
+     * @return true if we have the required access, false otherwise
      */
-    fun hasWriteSecureSettingsPermission(): Boolean {
-        return try {
-            // First check if we have general Shizuku permission
-            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "No general Shizuku permission")
-                return false
-            }
-            
-            // Then test if we can actually write to secure settings
-            checkShizukuWritePermission()
-            
-        } catch (e: Exception) {
-            Log.w(TAG, "Error checking WRITE_SECURE_SETTINGS permission", e)
-            false
-        }
+    fun hasDnsAccess(context: Context): Boolean {
+        return canAccessSystemSettings()
     }
     
-    /**
-     * Request the specific WRITE_SECURE_SETTINGS permission needed for DNS operations
-     * This method ensures we have the right permission for the specific operation
-     */
-    fun requestWriteSecureSettingsPermission() {
-        try {
-            Log.i(TAG, "Requesting WRITE_SECURE_SETTINGS permission for DNS operations")
-            
-            // First ensure we have general Shizuku permission
-            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "Requesting general Shizuku permission first")
-                Shizuku.requestPermission(1)
-                return
-            }
-            
-            // If we have general permission, test DNS write access
-            if (checkShizukuWritePermission()) {
-                Log.i(TAG, "Already have WRITE_SECURE_SETTINGS permission")
-                _shizukuState.value = ShizukuState.READY
-                _hasPermission.value = true
-                _lastError.value = null
-            } else {
-                Log.w(TAG, "Have Shizuku permission but not WRITE_SECURE_SETTINGS - user needs to grant in Shizuku app")
-                _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
-                _hasPermission.value = false
-                _lastError.value = "Shizuku permission granted but WRITE_SECURE_SETTINGS still required. Please check Shizuku app settings."
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Error requesting WRITE_SECURE_SETTINGS permission", e)
-            _lastError.value = "Failed to request permission: ${e.message}"
-        }
-    }
     
     /**
-     * Test DNS operations to verify Shizuku permissions are working
+     * Test DNS operations to verify access is working
      * @return true if DNS operations succeed, false otherwise
      */
     fun testDnsOperations(): Boolean {
         return try {
-            Log.i(TAG, "Testing DNS operations to verify Shizuku permissions")
+            Log.i(TAG, "Testing DNS operations to verify access")
             
             // Test 1: Read DNS settings
-            val currentMode = android.provider.Settings.Global.getString(
+            val currentMode = Settings.Global.getString(
                 context.contentResolver, 
                 "private_dns_mode"
             )
@@ -255,7 +92,7 @@ class ShizukuManager(private val context: Context) {
             val originalMode = currentMode ?: "opportunistic"
             val testMode = "off"
             
-            val writeResult = android.provider.Settings.Global.putString(
+            val writeResult = Settings.Global.putString(
                 context.contentResolver, 
                 "private_dns_mode", 
                 testMode
@@ -267,7 +104,7 @@ class ShizukuManager(private val context: Context) {
             }
             
             // Test 3: Verify the write worked
-            val verifyValue = android.provider.Settings.Global.getString(
+            val verifyValue = Settings.Global.getString(
                 context.contentResolver, 
                 "private_dns_mode"
             )
@@ -278,17 +115,17 @@ class ShizukuManager(private val context: Context) {
             }
             
             // Test 4: Restore original value
-            android.provider.Settings.Global.putString(
+            Settings.Global.putString(
                 context.contentResolver, 
                 "private_dns_mode", 
                 originalMode
             )
             
-            Log.i(TAG, "DNS operations test successful - Shizuku permissions are working")
+            Log.i(TAG, "DNS operations test successful - access is working")
             true
             
         } catch (e: SecurityException) {
-            Log.w(TAG, "DNS operations test failed - SecurityException (permission denied)", e)
+            Log.w(TAG, "DNS operations test failed - SecurityException (access denied)", e)
             false
         } catch (e: Exception) {
             Log.w(TAG, "DNS operations test failed - unexpected error", e)
@@ -297,64 +134,42 @@ class ShizukuManager(private val context: Context) {
     }
     
     /**
-     * Manually refresh Shizuku status - call this after returning from Shizuku app
-     * This method should be called when the user returns from granting permissions
+     * Manually refresh access status - call this after returning from Shizuku app
+     * @param context The application context
      */
-    fun refreshShizukuStatus() {
-        try {
-            Log.i(TAG, "Manually refreshing Shizuku status")
-            
-            // Force a fresh status check using the official API
-            checkShizukuStatus()
-            
-            // Also check if we can now perform DNS operations
-            if (_shizukuState.value == ShizukuState.READY) {
-                Log.i(TAG, "Shizuku status refreshed - permissions are now granted")
-                _lastError.value = null
-            } else {
-                Log.w(TAG, "Shizuku status refreshed but permissions still not granted")
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Error refreshing Shizuku status", e)
-            _lastError.value = "Error refreshing status: ${e.message}"
-        }
+    fun refreshAccessStatus(context: Context) {
+        checkShizukuStatus(context)
     }
     
     /**
-     * Check current Shizuku status and update state using the official API
+     * Check current access status and update state
+     * @param context The application context
      */
-    fun checkShizukuStatus() {
+    fun checkShizukuStatus(context: Context) {
         try {
-            Log.d(TAG, "Checking Shizuku status via official API")
+            Log.d(TAG, "Checking Shizuku access status")
 
-            if (!Shizuku.pingBinder()) {
-                Log.d(TAG, "Shizuku service not available")
-                _shizukuState.value = ShizukuState.NOT_RUNNING
-                _hasPermission.value = false
-                _lastError.value = "Shizuku service is not running"
-                return
-            }
-
-            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "General Shizuku permission is granted, checking DNS-specific permission")
+            // Check if we can access system settings through Shizuku
+            if (canAccessSystemSettings()) {
+                Log.d(TAG, "System settings access available, checking DNS-specific access")
                 
-                // Check if we have the specific permission needed for DNS operations
-                if (hasWriteSecureSettingsPermission()) {
-                    Log.d(TAG, "Shizuku permission is granted and DNS operations are allowed")
+                // Check if we have the specific access needed for DNS operations
+                if (hasDnsAccess(context)) {
+                    Log.d(TAG, "DNS access is available and working")
                     _shizukuState.value = ShizukuState.READY
                     _hasPermission.value = true
                     _lastError.value = null
                 } else {
-                    Log.w(TAG, "Shizuku permission granted but WRITE_SECURE_SETTINGS not available")
+                    Log.w(TAG, "System access available but DNS operations not working")
                     _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
                     _hasPermission.value = false
-                    _lastError.value = "Shizuku permission granted but WRITE_SECURE_SETTINGS still required. Please check Shizuku app settings."
+                    _lastError.value = "System access available but DNS operations not working. Please open Shizuku app → Apps → DNSFlip → Grant 'System API' permission → Restart DNSFlip app."
                 }
             } else {
-                Log.d(TAG, "Shizuku permission is required")
+                Log.d(TAG, "System settings access not available")
                 _shizukuState.value = ShizukuState.PERMISSION_REQUIRED
                 _hasPermission.value = false
+                _lastError.value = "Cannot access system settings. Please open Shizuku app → Apps → DNSFlip → Grant 'System API' permission → Restart DNSFlip app."
             }
 
             Log.d(TAG, "Shizuku status updated: ${_shizukuState.value}")
@@ -367,73 +182,14 @@ class ShizukuManager(private val context: Context) {
         }
     }
     
-    /**
-     * Automatically check and request Shizuku permissions with user consent
-     * This method should be called when the app starts to ensure permissions are properly set up
-     */
-    fun autoCheckAndRequestPermissions() {
-        try {
-            Log.i(TAG, "Auto-checking and requesting Shizuku permissions")
-            
-            // First check current status
-            checkShizukuStatus()
-            
-            when (_shizukuState.value) {
-                ShizukuState.NOT_RUNNING -> {
-                    Log.i(TAG, "Shizuku service not running - user needs to start it")
-                    _lastError.value = "Shizuku service is not running. Please start it in the Shizuku app."
-                }
-                
-                ShizukuState.PERMISSION_REQUIRED -> {
-                    Log.i(TAG, "Permission required - automatically requesting it")
-                    // Automatically request permission
-                    requestPermission()
-                }
-                
-                ShizukuState.READY -> {
-                    Log.i(TAG, "Shizuku is ready - no action needed")
-                    _lastError.value = null
-                }
-                
-                ShizukuState.ERROR -> {
-                    Log.w(TAG, "Error state detected - user needs to check Shizuku manually")
-                    _lastError.value = "Error detected. Please check Shizuku app manually."
-                }
-                
-                else -> {
-                    Log.w(TAG, "Unknown state: ${_shizukuState.value}")
-                }
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in auto permission check", e)
-            _lastError.value = "Auto permission check failed: ${e.message}"
-        }
-    }
     
     /**
-     * Request Shizuku permission using the official API
+     * Request Shizuku access for DNS operations
+     * @param context The application context
      */
-    fun requestPermission() {
-        try {
-            Log.i(TAG, "Requesting Shizuku permission via API")
-
-            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "Requesting general Shizuku permission")
-                Shizuku.requestPermission(1)
-            } else {
-                Log.i(TAG, "General Shizuku permission already granted, checking DNS-specific permission")
-                // Use the specific permission request method
-                requestWriteSecureSettingsPermission()
-            }
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error requesting Shizuku permission", e)
-            _lastError.value = "Failed to request permission: ${e.message}"
-        }
+    fun requestPermission(context: Context) {
+        checkShizukuStatus(context)
     }
-    
-
     
     /**
      * Get status message for current state
@@ -441,8 +197,8 @@ class ShizukuManager(private val context: Context) {
      */
     fun getStatusMessage(): String {
         return when (_shizukuState.value) {
-            ShizukuState.NOT_RUNNING -> "Shizuku service is not accessible"
-            ShizukuState.PERMISSION_REQUIRED -> "Permission required"
+            ShizukuState.NOT_RUNNING -> "Shizuku not accessible"
+            ShizukuState.PERMISSION_REQUIRED -> "Access required"
             ShizukuState.READY -> "Shizuku is ready and working"
             ShizukuState.ERROR -> "Error: ${_lastError.value ?: "Unknown error"}"
         }
@@ -454,8 +210,8 @@ class ShizukuManager(private val context: Context) {
      */
     fun getRecommendedAction(): String {
         return when (_shizukuState.value) {
-            ShizukuState.NOT_RUNNING -> "Start Shizuku service"
-            ShizukuState.PERMISSION_REQUIRED -> "Grant permission"
+            ShizukuState.NOT_RUNNING -> "Configure Shizuku"
+            ShizukuState.PERMISSION_REQUIRED -> "Enable System API permission in Shizuku"
             ShizukuState.READY -> "Ready to use"
             ShizukuState.ERROR -> "Check error details"
         }

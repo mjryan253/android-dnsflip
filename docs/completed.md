@@ -2,6 +2,50 @@
 
 This document tracks all completed features and implementations in the DNSFlip project.
 
+## ✅ Phase 21: Code Cleanup and Redundancy Removal Complete (December 2024)
+
+### Code Quality Improvements
+- **Comprehensive Code Analysis**: Analyzed entire codebase to identify redundancies and non-essential code
+- **UI Component Consolidation**: Removed duplicate LightSwitch implementation, consolidated to single LargeLightSwitch
+- **DNSManager Streamlining**: Eliminated redundant methods while maintaining detailed error reporting functionality
+- **ShizukuManager Simplification**: Removed overlapping permission checking methods and simplified state management
+- **MainActivity Optimization**: Unified state management using ShizukuManager as single source of truth
+- **Theme System Cleanup**: Removed unused colors (OLEDBlackSecondary, TextDisabled) to simplify color palette
+- **Test File Cleanup**: Removed generic example test files that weren't specific to app functionality
+
+### Code Reduction Summary
+- **Removed Redundant Methods**: Eliminated duplicate DNS operation methods and permission checking functions
+- **Simplified State Management**: Reduced state variables and unified permission state handling
+- **Consolidated UI Components**: Single light switch component with simplified styling
+- **Cleaned Theme System**: Removed unused colors while maintaining OLED-optimized dark theme
+- **Maintained Functionality**: All core DNS switching and error handling capabilities preserved
+
+### Quality Metrics
+- **Reduced Code Complexity**: Eliminated duplicate code and redundant functionality
+- **Improved Maintainability**: Cleaner, more focused codebase with single responsibility principles
+- **Preserved Features**: All existing functionality maintained with simplified implementation
+- **Enhanced Readability**: Removed unnecessary complexity while keeping essential features
+
+## ✅ Phase 20: Critical Shizuku Limitation Discovery, Alternative Approaches Required (December 2024)
+
+### Critical Discovery
+- **Shizuku Limitation Identified**: Shizuku cannot grant `WRITE_SECURE_SETTINGS` permission - this is a fundamental system restriction
+- **Permission Testing Results**: Even with manual Shizuku access granted, DNS operations still fail with SecurityException
+- **Evidence Analysis**: Comprehensive logcat monitoring revealed consistent SecurityException patterns
+- **User Testing Confirmed**: Manual permission granting in Shizuku app did not resolve the issue
+
+### Testing Process Documentation
+- **Manual Permission Testing**: User manually granted Shizuku access to DNSFlip through Shizuku app interface
+- **Error Pattern Analysis**: Consistent SecurityException for WRITE_SECURE_SETTINGS across all attempts
+- **Log Analysis**: Comprehensive logcat monitoring with filtered output revealed the fundamental limitation
+- **User Feedback Integration**: "Still not asking for permissions, still not granting them" confirmed Shizuku limitation
+
+### Alternative Approach Research
+- **ADB Method Investigation**: Research into ADB-based permission granting methods
+- **Root Access Requirements**: Investigation of root access requirements for DNS operations
+- **System-Level Alternatives**: Exploration of alternative DNS configuration methods
+- **User Manual Configuration**: Documentation of manual permission setup requirements
+
 ## ✅ Phase 19: Enhanced Error Handling and Troubleshooting, Specific Permission Issue Resolution, Deployment Automation (December 2024)
 
 ### Enhanced DNS Error Reporting
@@ -209,6 +253,6 @@ This document tracks all completed features and implementations in the DNSFlip p
 
 ---
 
-**Total Completed Phases: 19**
+**Total Completed Phases: 21**
 
 The DNSFlip project has successfully implemented comprehensive DNS switching functionality with professional-grade error handling, troubleshooting capabilities, and Shizuku integration for system permissions. The app is now ready for user testing and feedback on the enhanced error reporting system.

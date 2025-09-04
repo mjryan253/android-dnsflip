@@ -283,7 +283,7 @@ class DNSManager {
     }
     
     /**
-     * Sets DNS mode to automatic (uses system default DNS) - legacy method for backward compatibility
+     * Sets DNS mode to automatic (uses system default DNS)
      * @param context Application context
      * @return true if successful, false otherwise
      */
@@ -292,7 +292,7 @@ class DNSManager {
     }
     
     /**
-     * Sets DNS mode to use a custom DNS hostname - legacy method for backward compatibility
+     * Sets DNS mode to use a custom DNS hostname
      * @param context Application context
      * @param hostname The DNS hostname to use (e.g., "1.1.1.1", "dns.google")
      * @return true if successful, false otherwise
@@ -414,49 +414,6 @@ class DNSManager {
         return description
     }
     
-    /**
-     * Validates a DNS hostname for proper format
-     * @param hostname The hostname to validate
-     * @return true if valid, false otherwise
-     */
-    fun isValidHostname(hostname: String): Boolean {
-        if (hostname.isBlank()) {
-            Log.d(TAG, "Hostname validation failed: blank")
-            return false
-        }
-        
-        val trimmed = hostname.trim()
-        
-        // Basic validation - should be non-empty and not too long
-        if (trimmed.length > 253) {
-            Log.d(TAG, "Hostname validation failed: too long (${trimmed.length} chars)")
-            return false
-        }
-        
-        // Check for valid characters (basic validation)
-        val validPattern = Regex("^[a-zA-Z0-9.-]+$")
-        val isValid = validPattern.matches(trimmed)
-        
-        Log.d(TAG, "Hostname validation result: $isValid for '$trimmed'")
-        return isValid
-    }
-    
-    /**
-     * Gets detailed error information for debugging
-     * @param context Application context
-     * @return Detailed error information or null if no error
-     */
-    fun getDetailedErrorInfo(context: Context): String? {
-        return try {
-            // Try to get DNS mode to see what happens
-            val dnsMode = Settings.Global.getString(context.contentResolver, PRIVATE_DNS_MODE)
-            null // No error if we can read
-        } catch (e: SecurityException) {
-            "Permission denied: ${e.message}"
-        } catch (e: Exception) {
-            "Unexpected error: ${e.message}"
-        }
-    }
 
     /**
      * Get detailed DNS configuration information

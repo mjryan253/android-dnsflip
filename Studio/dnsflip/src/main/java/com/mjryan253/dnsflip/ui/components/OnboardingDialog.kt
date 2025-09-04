@@ -32,9 +32,9 @@ fun OnboardingDialog(
     isVisible: Boolean,
     onDismiss: () -> Unit,
     shizukuManager: ShizukuManager,
+    context: Context,
     onPermissionGranted: () -> Unit
 ) {
-    val context = LocalContext.current
     var showAdbInstructions by remember { mutableStateOf(false) }
     var expandedSection by remember { mutableStateOf<String?>(null) }
     
@@ -142,7 +142,7 @@ fun OnboardingDialog(
                                 }
                                 ShizukuState.PERMISSION_REQUIRED -> {
                                     Button(
-                                        onClick = { shizukuManager.requestPermission() },
+                                        onClick = { shizukuManager.requestPermission(context) },
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(containerColor = SwitchOn)
                                     ) {

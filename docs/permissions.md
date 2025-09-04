@@ -1,10 +1,12 @@
 # DNSFlip - Permission Setup Guide
 
-DNSFlip requires the `WRITE_SECURE_SETTINGS` permission to modify DNS settings on Android. This permission cannot be granted through normal app installation and requires special setup. We provide two methods: **Shizuku (Recommended)** and **ADB (Manual)**.
+DNSFlip requires the `WRITE_SECURE_SETTINGS` permission to modify DNS settings on Android. This permission cannot be granted through normal app installation and requires special setup. We provide multiple methods: **ADB (Recommended)**, **Root Access**, and **Alternative DNS Methods**.
 
-## Method 1: Shizuku (Recommended) 🚀
+## Method 1: Shizuku (Limited) ⚠️
 
-Shizuku is a system service that allows apps to use system APIs with proper permissions. It provides a much smoother user experience compared to manual ADB commands.
+**IMPORTANT**: Shizuku cannot grant the `WRITE_SECURE_SETTINGS` permission required for DNS operations. This is a fundamental system limitation. While Shizuku can grant other system permissions, it cannot provide the specific permission needed for DNS configuration changes.
+
+**Status**: ❌ **Not Functional** - Shizuku approach cannot work for DNS operations
 
 ### What is Shizuku?
 Shizuku is a system service that runs with root privileges and allows apps to access system APIs that normally require system-level permissions. It's widely used in the Android customization community and is considered safe and reliable.
@@ -53,9 +55,9 @@ Shizuku is a system service that runs with root privileges and allows apps to ac
 
 ---
 
-## Method 2: ADB (Manual Fallback) 🔧
+## Method 2: ADB (Recommended) 🔧
 
-If you prefer not to use Shizuku or it's not available on your device, you can grant permissions manually using ADB (Android Debug Bridge).
+Since Shizuku cannot grant the required permission, ADB (Android Debug Bridge) is the recommended method for granting the `WRITE_SECURE_SETTINGS` permission.
 
 ### Prerequisites
 - A computer with ADB installed
